@@ -1,7 +1,7 @@
 /* ═══════════ SUPABASE ═══════════ */
-const SUPABASE_URL = document.querySelector('meta[name="supabase-url"]')?.content
-const SUPABASE_KEY = document.querySelector('meta[name="supabase-key"]')?.content
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+const SUPABASE_URL = document.querySelector('meta[name="zenoDb-url"]')?.content
+const SUPABASE_KEY = document.querySelector('meta[name="zenoDb-key"]')?.content
+const zenoDb = window.zenoDb.createClient(SUPABASE_URL, SUPABASE_KEY)
 
 /* NAV */
 function goTo(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'})}
@@ -167,7 +167,7 @@ async function submitRegister(){
   const usage  = document.getElementById('f-usage').value
   const reseau = document.getElementById('f-network').value
 
-  const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await zenoDb.auth.signUp({
     email: email,
     password: pwd,
     options: {
@@ -185,7 +185,7 @@ async function submitRegister(){
     return
   }
 
-  await supabase.from('users').insert({
+  await zenoDb.from('users').insert({
     email:  email,
     prenom: prenom,
     plan:   currentPlan,
