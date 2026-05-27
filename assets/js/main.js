@@ -1,3 +1,10 @@
+/* ═══════════ SUPABASE ═══════════ */
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+const SUPABASE_URL = document.querySelector('meta[name="supabase-url"]')?.content
+const SUPABASE_KEY = document.querySelector('meta[name="supabase-key"]')?.content
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
 /* NAV */
 function goTo(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'})}
 function toggleMenu(){
@@ -151,13 +158,46 @@ function goBack(from){
   else if(from===3){showStep('step2');updateStepper(2);}
 }
 
-function submitRegister(){
-  var cgu=document.getElementById('f-cgu').checked;
-  document.getElementById('err-cgu').classList.toggle('show',!cgu);
-  if(!cgu)return;
-  document.getElementById('stepperWrap').style.display='none';
-  document.getElementById('modalPlanBadge').style.display='none';
-  showStep('stepSuccess');
+async function submitRegister(){
+  var cgu = document.getElementById('f-cgu').checked
+  document.getElementById('err-cgu').classList.toggle('show', !cgu)
+  if(!cgu) return
+
+  const email  = document.getElementById('f-email').value
+  const pwd    = document.getElementById('f-pwd').value
+  const prenom = document.getElementById('f-name').value
+  const usage  = document.getElementById('f-usage').value
+  const reseau = document.getElementById('f-network').value
+
+  const { data, error } = await supabase.auth.signUp({
+    email: email,
+    password: pwd,
+    options: {
+      data: {
+        prenom: prenom,
+        plan: currentPlan,
+        usage: usage,
+        reseau: reseau
+      }
+    }
+  })
+
+  if(error){
+    alert('Erreur : ' + error.message)
+    return
+  }
+
+  await supabase.from('users').insert({
+    email:  email,
+    prenom: prenom,
+    plan:   currentPlan,
+    usage:  usage,
+    reseau: reseau
+  })
+
+  document.getElementById('stepperWrap').style.display = 'none'
+  document.getElementById('modalPlanBadge').style.display = 'none'
+  showStep('stepSuccess')
 }
 
 function switchToLogin(){
