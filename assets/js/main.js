@@ -1,7 +1,7 @@
 /* ═══════════ SUPABASE ═══════════ */
-const SUPABASE_URL = document.querySelector('meta[name="zenoDb-url"]')?.content
-const SUPABASE_KEY = document.querySelector('meta[name="zenoDb-key"]')?.content
-const zenoDb = window.zenoDb.createClient(SUPABASE_URL, SUPABASE_KEY)
+const SUPABASE_URL = document.querySelector('meta[name="supabase-url"]')?.content
+const SUPABASE_KEY = document.querySelector('meta[name="supabase-key"]')?.content
+const zenoDb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
 /* NAV */
 function goTo(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'})}
