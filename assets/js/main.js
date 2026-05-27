@@ -1,9 +1,7 @@
 /* ═══════════ SUPABASE ═══════════ */
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
 const SUPABASE_URL = document.querySelector('meta[name="supabase-url"]')?.content
 const SUPABASE_KEY = document.querySelector('meta[name="supabase-key"]')?.content
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
 /* NAV */
 function goTo(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'})}
