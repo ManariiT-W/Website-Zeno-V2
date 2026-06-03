@@ -199,10 +199,9 @@ async function submitRegister(){
 }
 
 function switchToLogin(){
-  document.getElementById('modalPlanBadge').style.display='none';
-  document.getElementById('stepperWrap').style.display='none';
-  showStep('stepLogin');
+  window.location.href='dashboard.html';
 }
+
 function switchToRegister(){
   document.getElementById('modalPlanBadge').style.display='block';
   document.getElementById('stepperWrap').style.display='flex';
