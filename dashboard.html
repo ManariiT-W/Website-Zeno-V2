@@ -655,7 +655,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
           <h3 style="font-size:16px;font-weight:700;margin-bottom:20px">Mon profil</h3>
           <div class="field"><label>Prénom</label><input type="text" id="param-prenom" placeholder="Ton prénom"></div>
           <div class="field" style="margin-top:14px"><label>Email</label><input type="email" id="param-email" placeholder="ton@email.com" disabled style="opacity:.5"></div>
-          <button class="btn-sm btn-violet" style="margin-top:16px">Sauvegarder</button>
+          <button class="btn-sm btn-violet" style="margin-top:16px" onclick="saveParams()">Sauvegarder</button>
         </div>
         <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px">
           <h3 style="font-size:16px;font-weight:700;margin-bottom:8px">Mon plan</h3>
@@ -934,6 +934,18 @@ function toggleNicheCustom(val) {
 }
 function toggleStyleCustom(val) {
   document.getElementById('styleCustomWrap').style.display = val === 'custom' ? 'block' : 'none'
+}
+
+/* PARAMS */
+async function saveParams() {
+  if(!currentUser) return
+  var prenom = document.getElementById('param-prenom').value.trim()
+  if(!prenom) { alert('Remplis ton prénom.'); return }
+  const { error } = await zenoDb.from('users').update({ prenom: prenom }).eq('id', currentUser.id)
+  if(error) { alert('Erreur : ' + error.message); return }
+  document.getElementById('userName').textContent = prenom
+  document.getElementById('userAv').textContent   = prenom.charAt(0).toUpperCase()
+  alert('Profil mis à jour ✓')
 }
 
 /* ENTER KEY LOGIN */
