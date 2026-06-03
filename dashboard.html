@@ -603,29 +603,12 @@ async function checkInfluenceurLimit() {
 }
 
 function showUpgradeMessage(limit) {
-  var plan     = window.currentPlanUser || 'starter'
-  var nextPlan = plan === 'starter' ? 'nova' : 'stellar'
-  var nextPlanLabel = nextPlan.charAt(0).toUpperCase() + nextPlan.slice(1)
-  var planLabel = plan.charAt(0).toUpperCase() + plan.slice(1)
-
-  var popup = document.createElement('div')
-  popup.id = 'upgradePopup'
-  popup.className = 'upgrade-popup'
-  popup.innerHTML = `
-    <div class="upgrade-box ${nextPlan}">
-      <div class="upgrade-icon ${nextPlan}">🚀</div>
-      <h3 class="upgrade-title">Limite atteinte</h3>
-      <p class="upgrade-desc">Tu as atteint la limite de <strong>${limit} influenceur(s)</strong> pour ton plan <strong>${planLabel}</strong>.<br>Passe au plan <span class="plan-name ${nextPlan}">${nextPlanLabel}</span> pour en créer plus.</p>
-      <div class="upgrade-btns">
-        <button class="upgrade-btn-cancel" onclick="document.getElementById('upgradePopup').remove()">Fermer</button>
-        <button class="upgrade-btn-go ${nextPlan}" onclick="window.location.href='index.html#tarifs'">Voir les plans →</button>
-      </div>
-    </div>
-  `
-  document.body.appendChild(popup)
-  popup.addEventListener('click', function(e) {
-    if(e.target === popup) popup.remove()
-  })
+  var plan = window.currentPlanUser || 'starter'
+  var nextPlan = plan === 'starter' ? 'Nova' : 'Stellar'
+  var msg = 'Tu as atteint la limite de ' + limit + ' influenceur(s) pour ton plan ' + plan.charAt(0).toUpperCase() + plan.slice(1) + '.\n\nPasse au plan ' + nextPlan + ' pour en créer plus !'
+  if(confirm(msg)) {
+    window.location.href = 'index.html#tarifs'
+  }
 }
 
 /* ═══ LOAD INFLUENCEURS ═══ */
