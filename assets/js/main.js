@@ -98,6 +98,13 @@ function closeModal(){
   document.getElementById('modalOverlay').classList.remove('open');
   document.body.style.overflow='';
 }
+
+/* Ouvrir modal si redirigé depuis dashboard */
+if(sessionStorage.getItem('openModal') === 'true') {
+  sessionStorage.removeItem('openModal')
+  openModal('starter')
+}
+
 function handleOverlay(e){if(e.target===document.getElementById('modalOverlay'))closeModal();}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
 

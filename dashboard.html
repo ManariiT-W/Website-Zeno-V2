@@ -35,7 +35,7 @@
         <div class="field-err" id="err-login-pwd">Mot de passe requis</div>
       </div>
       <button class="btn-primary" id="loginBtn" onclick="handleLogin()">Se connecter</button>
-      <div class="login-switch">Pas encore de compte ? <a href="index.html">S'inscrire gratuitement</a></div>
+      <div class="login-switch">Pas encore de compte ? <a href="index.html" onclick="sessionStorage.setItem('openModal','true')">S'inscrire gratuitement</a></div>
     </div>
   </div>
 </div>
@@ -467,6 +467,15 @@ var currentUser = null
 var currentStep = 1
 var creationData = { prenom:'', nom:'', age:'', niche:'', nationalite:'', qualites:'', defauts:'', style:'', hobbies:'', visage:'', voix:'', reseau:'' }
 
+/* Vider la session au chargement si pas de session active */
+zenoDb.auth.onAuthStateChange(function(event, session) {
+  if(event === 'SIGNED_OUT') {
+    currentUser = null
+    document.getElementById('dashboard').classList.remove('active')
+    document.getElementById('loginPage').style.display = 'flex'
+  }
+})
+
 /* ═══ AUTH CHECK ═══ */
 async function checkAuth() {
   const { data: { session } } = await zenoDb.auth.getSession()
@@ -474,9 +483,10 @@ async function checkAuth() {
     currentUser = session.user
     showDashboard()
     loadUserData()
+  } else {
+    document.getElementById('loginPage').style.display = 'flex'
   }
 }
-checkAuth()
 
 /* ═══ LOGIN ═══ */
 async function handleLogin() {
@@ -522,6 +532,9 @@ async function handleLogout() {
   document.getElementById('loginPage').style.display = 'flex'
   document.getElementById('loginBtn').innerHTML = 'Se connecter'
   document.getElementById('loginBtn').disabled = false
+  currentUser = null
+  window.currentPlanUser = null
+  window.planLimits = null
 }
 
 /* ═══ SHOW DASHBOARD ═══ */
