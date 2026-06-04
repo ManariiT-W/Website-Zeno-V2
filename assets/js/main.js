@@ -171,10 +171,11 @@ async function submitRegister(){
     email: email,
     password: pwd,
     options: {
+      emailRedirectTo: 'https://website-zeno-v2-j9e3.vercel.app/dashboard.html',
       data: {
         prenom: prenom,
-        plan: currentPlan,
-        usage: usage,
+        plan:   currentPlan,
+        usage:  usage,
         reseau: reseau
       }
     }
@@ -184,14 +185,6 @@ async function submitRegister(){
     alert('Erreur : ' + error.message)
     return
   }
-
-  await zenoDb.from('users').insert({
-    email:  email,
-    prenom: prenom,
-    plan:   currentPlan,
-    usage:  usage,
-    reseau: reseau
-  })
 
   document.getElementById('stepperWrap').style.display = 'none'
   document.getElementById('modalPlanBadge').style.display = 'none'
