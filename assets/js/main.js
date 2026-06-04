@@ -178,7 +178,6 @@ async function submitRegister(){
     email: email,
     password: pwd,
     options: {
-      emailRedirectTo: 'https://website-zeno-v2-j9e3.vercel.app/dashboard.html',
       data: {
         prenom: prenom,
         plan:   currentPlan,
