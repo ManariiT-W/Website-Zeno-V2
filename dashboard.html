@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="assets/css/dashboard.css">
 </head>
 <body>
-<!-- ═══ Teste ═══ -->
+
 
 <!-- ═══ LOGIN PAGE ═══ -->
 <div class="login-page" id="loginPage">
@@ -424,11 +424,11 @@
           <div style="font-size:64px;margin-bottom:20px;opacity:.4">🎬</div>
           <h3 style="font-size:18px;font-weight:700;margin-bottom:8px;color:var(--muted2)">Aucune vidéo générée</h3>
           <p style="font-size:13px;color:var(--muted);margin-bottom:32px">Lance ta première génération de vidéo pour ton influenceur IA.</p>
-          <button onclick="checkAndOpenGeneration()" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--violet),#5a3fd8);border:none;border-radius:var(--r-lg);padding:16px 32px;color:var(--white);font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 0 30px rgba(123,97,255,.35);transition:all .3s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 40px rgba(123,97,255,.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 0 30px rgba(123,97,255,.35)'">
+          <button onclick="checkAndOpenGeneration()" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--violet),#5a3fd8);border:none;border-radius:var(--r-lg);padding:16px 32px;color:var(--white);font-size:15px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif;box-shadow:0 0 30px rgba(123,97,255,.35);transition:all .3s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 40px rgba(123,97,255,.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 0 30px rgba(123,97,255,.35)'">
             <span style="font-size:20px">✨</span>Génère ta vidéo
           </button>
         </div>
-        <button id="btnGenererFloat" onclick="checkAndOpenGeneration()" style="display:none;position:fixed;bottom:32px;right:32px;z-index:50;background:var(--violet);border:none;border-radius:var(--r-lg);padding:14px 24px;color:var(--white);font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 8px 24px rgba(123,97,255,.4);transition:all .25s">
+        <button id="btnGenererFloat" onclick="checkAndOpenGeneration()" style="display:none;position:fixed;bottom:32px;right:32px;z-index:50;background:var(--violet);border:none;border-radius:var(--r-lg);padding:14px 24px;color:var(--white);font-size:13px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif;box-shadow:0 8px 24px rgba(123,97,255,.4);transition:all .25s">
           + Génère ta vidéo
         </button>
       </div>
@@ -877,8 +877,8 @@ function showVideoPopup(type) {
       <h3 style="font-family:'Syne',sans-serif;font-size:19px;font-weight:800;margin-bottom:12px">${title}</h3>
       <p style="font-size:13.5px;color:var(--muted);line-height:1.7;margin-bottom:28px">${msg}</p>
       <div style="display:flex;flex-direction:column;gap:10px">
-        <button onclick="${btn1Action}" style="padding:12px;border-radius:var(--r-md);background:var(--violet);border:none;color:var(--white);font-size:13.5px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 0 20px rgba(123,97,255,.3)">${btn1}</button>
-        <button onclick="document.getElementById('videoCondPopup').remove()" style="padding:12px;border-radius:var(--r-md);background:rgba(255,255,255,.05);border:1px solid var(--border2);color:var(--muted2);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Fermer</button>
+        <button onclick="${btn1Action}" style="padding:12px;border-radius:var(--r-md);background:var(--violet);border:none;color:var(--white);font-size:13.5px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif;box-shadow:0 0 20px rgba(123,97,255,.3)">${btn1}</button>
+        <button onclick="document.getElementById('videoCondPopup').remove()" style="padding:12px;border-radius:var(--r-md);background:rgba(255,255,255,.05);border:1px solid var(--border2);color:var(--muted2);font-size:13px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif">Fermer</button>
       </div>
     </div>
   `
@@ -889,7 +889,7 @@ function showVideoPopup(type) {
 function openGenerationView() {
   document.getElementById('videosMainView').style.display = 'none'
   document.getElementById('videosGenerationView').style.display = 'block'
-  document.getElementById('videosGenerationView').innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted)"><div style="font-size:48px;margin-bottom:16px">🎬</div><p>Interface de génération — Partie 2 à venir</p><br><button onclick="closeGenerationView()" style="padding:10px 20px;border-radius:var(--r-md);background:var(--bg2);border:1px solid var(--border2);color:var(--muted2);cursor:pointer;font-family:'DM Sans',sans-serif">← Retour</button></div>'
+  document.getElementById('videosGenerationView').innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted)"><div style="font-size:48px;margin-bottom:16px">🎬</div><p>Interface de génération — Partie 2 à venir</p><br><button onclick="closeGenerationView()" style="padding:10px 20px;border-radius:var(--r-md);background:var(--bg2);border:1px solid var(--border2);color:var(--muted2);cursor:pointer;font-family:\'DM Sans\',sans-serif">← Retour</button></div>'
 }
 
 function closeGenerationView() {
