@@ -454,17 +454,70 @@
 
     <!-- ═══ VUE PARAMÈTRES ═══ -->
     <div class="view" id="view-parametres">
-      <div style="max-width:560px">
-        <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px">
+      <div style="max-width:560px;display:flex;flex-direction:column;gap:16px">
+
+        <!-- Mon profil -->
+        <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px">
           <h3 style="font-size:16px;font-weight:700;margin-bottom:20px">Mon profil</h3>
           <div class="field"><label>Prénom</label><input type="text" id="param-prenom" placeholder="Ton prénom"></div>
           <div class="field" style="margin-top:14px"><label>Email</label><input type="email" id="param-email" placeholder="ton@email.com" disabled style="opacity:.5"></div>
-          <button class="btn-sm btn-violet" style="margin-top:16px">Sauvegarder</button>
+          <button class="btn-sm btn-violet" style="margin-top:16px" onclick="saveParams()">Sauvegarder</button>
         </div>
+
+        <!-- Mon plan -->
         <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px">
           <h3 style="font-size:16px;font-weight:700;margin-bottom:8px">Mon plan</h3>
           <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Tu es actuellement sur le plan <span id="param-plan-name" style="color:var(--white);font-weight:600">Starter</span>.</p>
           <button class="btn-sm btn-violet" onclick="window.location.href='index.html#tarifs'">Changer de plan</button>
+        </div>
+
+        <!-- Liaison réseaux sociaux -->
+        <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px">
+          <h3 style="font-size:16px;font-weight:700;margin-bottom:6px">Liaison réseaux sociaux</h3>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:24px">Connecte tes comptes pour permettre la publication automatique.</p>
+
+          <!-- TikTok -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md);margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:38px;height:38px;border-radius:10px;background:rgba(255,0,80,.1);display:flex;align-items:center;justify-content:center">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.22 8.22 0 004.84 1.55V6.79a4.85 4.85 0 01-1.07-.1z" fill="#ff0050"/></svg>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:600">TikTok</div>
+                <div style="font-size:11px;color:var(--muted)" id="tiktok-status-text">Non lié</div>
+              </div>
+            </div>
+            <button id="tiktok-btn" onclick="toggleReseau('tiktok')" style="padding:7px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;background:rgba(255,0,80,.1);border:1px solid rgba(255,0,80,.3);color:#ff0050;transition:all .2s">Lier</button>
+          </div>
+
+          <!-- Instagram -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md);margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:38px;height:38px;border-radius:10px;background:rgba(225,48,108,.1);display:flex;align-items:center;justify-content:center">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><defs><radialGradient id="ig2" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#fdf497"/><stop offset="45%" stop-color="#fd5949"/><stop offset="60%" stop-color="#d6249f"/><stop offset="90%" stop-color="#285AEB"/></radialGradient></defs><rect x="2" y="2" width="20" height="20" rx="5" fill="url(#ig2)"/><path d="M12 7a5 5 0 100 10A5 5 0 0012 7zm0 8a3 3 0 110-6 3 3 0 010 6zm5.2-8.8a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4z" fill="#fff"/></svg>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:600">Instagram</div>
+                <div style="font-size:11px;color:var(--muted)" id="instagram-status-text">Non lié</div>
+              </div>
+            </div>
+            <button id="instagram-btn" onclick="toggleReseau('instagram')" style="padding:7px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;background:rgba(225,48,108,.1);border:1px solid rgba(225,48,108,.3);color:#e1306c;transition:all .2s">Lier</button>
+          </div>
+
+          <!-- YouTube -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md)">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:38px;height:38px;border-radius:10px;background:rgba(255,0,0,.1);display:flex;align-items:center;justify-content:center">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M23 7s-.3-1.9-1.2-2.7c-1.1-1.2-2.4-1.2-3-1.3C16.6 3 12 3 12 3s-4.6 0-6.8.1c-.6.1-1.9.1-3 1.3C1.3 5.2 1 7 1 7S.7 9.1.7 11.3v2c0 2.1.3 4.3.3 4.3s.3 1.9 1.2 2.7c1.1 1.2 2.6 1.1 3.3 1.2C7.3 21.6 12 21.7 12 21.7s4.6 0 6.8-.2c.6-.1 1.9-.1 3-1.3.9-.8 1.2-2.7 1.2-2.7s.3-2.1.3-4.3v-2C23.3 9.1 23 7 23 7z" fill="#ff0000"/><path d="M9.7 15.5V8.9l6.6 3.3-6.6 3.3z" fill="#fff"/></svg>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:600">YouTube Shorts</div>
+                <div style="font-size:11px;color:var(--muted)" id="youtube-status-text">Non lié</div>
+              </div>
+            </div>
+            <button id="youtube-btn" onclick="toggleReseau('youtube')" style="padding:7px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;background:rgba(255,0,0,.1);border:1px solid rgba(255,0,0,.3);color:#ff0000;transition:all .2s">Lier</button>
+          </div>
+
         </div>
       </div>
     </div>
