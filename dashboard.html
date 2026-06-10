@@ -626,6 +626,7 @@ async function loadUserData() {
     applyPlanRestrictions(plan)
   }
   loadInfluenceurs()
+  loadReseauxLies()
 }
 
 /* ═══ RESTRICTIONS PAR PLAN ═══ */
@@ -873,6 +874,121 @@ function toggleNicheCustom(val) {
 }
 function toggleStyleCustom(val) {
   document.getElementById('styleCustomWrap').style.display = val === 'custom' ? 'block' : 'none'
+}
+
+/* PARAMS */
+async function saveParams() {
+  if(!currentUser) return
+  var prenom = document.getElementById('param-prenom').value.trim()
+  if(!prenom) { alert('Remplis ton prénom.'); return }
+  const { error } = await zenoDb.from('users').update({ prenom: prenom }).eq('id', currentUser.id)
+  if(error) { alert('Erreur : ' + error.message); return }
+  document.getElementById('userName').textContent = prenom
+  document.getElementById('userAv').textContent   = prenom.charAt(0).toUpperCase()
+  alert('Profil mis à jour ✓')
+}
+
+/* RESEAUX SOCIAUX */
+var reseauxLies = []
+
+function toggleReseau(reseau) {
+  var l = window.planLimits || { reseaux:1 }
+  var idx = reseauxLies.indexOf(reseau)
+  if(idx > -1) {
+    reseauxLies.splice(idx, 1)
+    updateReseauUI(reseau, false)
+    saveReseauxLies()
+    return
+  }
+  if(reseauxLies.length >= l.reseaux) {
+    showUpgradeMessage(l.reseaux)
+    return
+  }
+  updateReseauUI(reseau, 'loading')
+  setTimeout(function() {
+    reseauxLies.push(reseau)
+    updateReseauUI(reseau, true)
+    saveReseauxLies()
+    showReseauPopup('success', reseau)
+  }, 1500)
+}
+
+function updateReseauUI(reseau, status) {
+  var btn  = document.getElementById(reseau + '-btn')
+  var text = document.getElementById(reseau + '-status-text')
+  if(!btn || !text) return
+  if(status === true) {
+    btn.textContent       = 'Lié ✓'
+    btn.style.background  = 'rgba(29,158,117,.15)'
+    btn.style.borderColor = 'rgba(29,158,117,.4)'
+    btn.style.color       = '#1D9E75'
+    text.textContent      = 'Compte lié'
+    text.style.color      = '#1D9E75'
+  } else if(status === 'loading') {
+    btn.textContent  = '...'
+    btn.disabled     = true
+    text.textContent = 'Connexion...'
+  } else {
+    btn.textContent       = 'Lier'
+    btn.disabled          = false
+    text.textContent      = 'Non lié'
+    text.style.color      = 'var(--muted)'
+    var colors   = { tiktok:'rgba(255,0,80,.1)',   instagram:'rgba(225,48,108,.1)', youtube:'rgba(255,0,0,.1)' }
+    var borders  = { tiktok:'rgba(255,0,80,.3)',   instagram:'rgba(225,48,108,.3)', youtube:'rgba(255,0,0,.3)' }
+    var txtColors= { tiktok:'#ff0050', instagram:'#e1306c', youtube:'#ff0000' }
+    btn.style.background  = colors[reseau]
+    btn.style.borderColor = borders[reseau]
+    btn.style.color       = txtColors[reseau]
+  }
+}
+
+async function saveReseauxLies() {
+  if(!currentUser) return
+  await zenoDb.from('users').update({ reseau_lie: reseauxLies.join(',') }).eq('id', currentUser.id)
+}
+
+async function loadReseauxLies() {
+  if(!currentUser) return
+  const { data } = await zenoDb.from('users').select('reseau_lie').eq('id', currentUser.id).single()
+  if(data && data.reseau_lie) {
+    reseauxLies = data.reseau_lie.split(',').filter(function(r) { return r !== '' })
+    reseauxLies.forEach(function(r) { updateReseauUI(r, true) })
+  }
+}
+
+function showReseauPopup(type, reseau) {
+  var existing = document.getElementById('reseauPopup')
+  if(existing) existing.remove()
+  var labels = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
+  var title, msg
+  if(type === 'success') {
+    title = '🎉 Compte lié avec succès !'
+    msg   = 'Ton compte <b>' + labels[reseau] + '</b> est maintenant lié. Tu peux générer et publier des vidéos.'
+  } else {
+    title = 'Échec de la liaison'
+    msg   = 'La liaison avec <b>' + labels[reseau] + '</b> a échoué. Réessaie plus tard.'
+  }
+  var overlay = document.createElement('div')
+  overlay.id = 'reseauPopup'
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)'
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(123,97,255,.2);border-radius:24px;padding:36px;width:100%;max-width:400px;text-align:center'
+  var titleEl = document.createElement('h3')
+  titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:19px;font-weight:800;margin-bottom:12px;color:#fff"
+  titleEl.textContent = title
+  var msgEl = document.createElement('p')
+  msgEl.style.cssText = 'font-size:13.5px;color:#6b6b80;line-height:1.65;margin-bottom:24px'
+  msgEl.innerHTML = msg
+  var closeBtn = document.createElement('button')
+  closeBtn.style.cssText = 'padding:11px 28px;border-radius:12px;background:#7b61ff;border:none;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer'
+  closeBtn.textContent = 'Fermer'
+  closeBtn.onclick = function() { overlay.remove() }
+  box.appendChild(titleEl)
+  box.appendChild(msgEl)
+  box.appendChild(closeBtn)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+  overlay.addEventListener('click', function(e) { if(e.target === overlay) overlay.remove() })
 }
 
 /* ENTER KEY LOGIN */
