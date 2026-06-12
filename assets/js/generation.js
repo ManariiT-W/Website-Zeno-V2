@@ -323,5 +323,322 @@ function bindGenerationEvents() {}
 function openPlanificationView() {
   var wrap = document.getElementById('videosGenerationView')
   if(!wrap) return
-  wrap.innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted)"><div style="font-size:48px;margin-bottom:16px">📅</div><p>Interface de planification — Partie 3 à venir</p><br><button onclick="closeGenerationView()" style="padding:10px 20px;border-radius:12px;background:#0d0d1f;border:1px solid rgba(255,255,255,.1);color:#a0a0b0;cursor:pointer">← Retour</button></div>'
+
+  var today = new Date()
+  var monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+  var currentMonth = today.getMonth()
+  var currentYear  = today.getFullYear()
+
+  wrap.innerHTML =
+    '<div class="plan-wrap">' +
+    '<div class="plan-header">' +
+    '<button class="gen-back-btn" onclick="retourGeneration()">← Retour</button>' +
+    '<h2 class="gen-title">Planifier la publication</h2>' +
+    '<div style="width:80px"></div>' +
+    '</div>' +
+
+    '<div class="plan-layout">' +
+
+    /* Colonne gauche - couverture + description */
+    '<div class="plan-left">' +
+    '<div class="plan-section-title">Image de couverture</div>' +
+    '<div class="plan-cover-wrap">' +
+    '<div class="plan-cover-preview" id="planCoverPreview">' +
+    '<div style="font-size:32px;margin-bottom:8px;opacity:.4">🖼️</div>' +
+    '<p style="font-size:11px;color:var(--muted)">Aucune image sélectionnée</p>' +
+    '</div>' +
+    '<div class="plan-cover-options">' +
+    '<button class="plan-cover-btn" onclick="selectCoverFrame()">📸 Choisir une frame</button>' +
+    '<button class="plan-cover-btn" onclick="document.getElementById(\'coverUpload\').click()">⬆️ Uploader une image</button>' +
+    '<input type="file" id="coverUpload" accept="image/*" style="display:none" onchange="handleCoverUpload(this)">' +
+    '<button class="plan-cover-btn" onclick="generateAICover()">✨ Générer avec l\'IA</button>' +
+    '</div>' +
+    '</div>' +
+
+    '<div class="plan-section-title" style="margin-top:20px">Description</div>' +
+    '<textarea id="planDescription" class="gen-textarea" style="height:100px" placeholder="Description de ta vidéo..."></textarea>' +
+
+    '<div class="plan-section-title" style="margin-top:14px">Hashtags</div>' +
+    '<textarea id="planHashtags" class="gen-textarea" style="height:70px" placeholder="#mode #fashion #tendance..."></textarea>' +
+
+    '</div>' +
+
+    /* Colonne droite - calendrier + plateforme */
+    '<div class="plan-right">' +
+
+    '<div class="plan-section-title">Date de publication</div>' +
+    '<div class="plan-calendar" id="planCalendar">' +
+    buildCalendar(currentMonth, currentYear, today) +
+    '</div>' +
+
+    '<div class="plan-time-wrap">' +
+    '<div class="plan-section-title" style="margin-bottom:10px">Heure de publication</div>' +
+    '<div style="display:flex;align-items:center;gap:10px">' +
+    '<select id="planHeure" class="plan-select" onchange="checkPublishReady()">' + buildHours() + '</select>' +
+    '<span style="color:var(--muted);font-weight:700">:</span>' +
+    '<select id="planMinute" class="plan-select" onchange="checkPublishReady()">' + buildMinutes() + '</select>' +
+    '</div>' +
+    '</div>' +
+
+    '<div class="plan-section-title" style="margin-top:20px">Plateforme</div>' +
+    '<div class="plan-platforms" id="planPlatforms">' +
+    buildPlatformButtons() +
+    '</div>' +
+
+    '<div id="planDateSelected" style="font-size:12px;color:var(--muted);margin-top:12px;min-height:18px"></div>' +
+
+    '<button class="plan-publish-btn" id="planPublishBtn" onclick="confirmerPublication()" disabled>' +
+    '🚀 Publier' +
+    '</button>' +
+
+    '</div>' +
+    '</div>' +
+    '</div>'
+
+  window.planState = {
+    date: null,
+    heure: '12',
+    minute: '00',
+    plateformes: [],
+    month: currentMonth,
+    year: currentYear,
+    today: today
+  }
+}
+
+function buildCalendar(month, year, today) {
+  var monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+  var dayNames   = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
+  var firstDay   = new Date(year, month, 1).getDay()
+  firstDay = firstDay === 0 ? 6 : firstDay - 1
+  var daysInMonth = new Date(year, month + 1, 0).getDate()
+  var todayStr = today.toDateString()
+
+  var html =
+    '<div class="cal-nav">' +
+    '<button class="cal-nav-btn" onclick="changeCalendarMonth(-1)">‹</button>' +
+    '<span class="cal-month-label" id="calMonthLabel">' + monthNames[month] + ' ' + year + '</span>' +
+    '<button class="cal-nav-btn" onclick="changeCalendarMonth(1)">›</button>' +
+    '</div>' +
+    '<div class="cal-grid">'
+
+  dayNames.forEach(function(d) {
+    html += '<div class="cal-day-name">' + d + '</div>'
+  })
+
+  for(var i = 0; i < firstDay; i++) {
+    html += '<div></div>'
+  }
+
+  for(var day = 1; day <= daysInMonth; day++) {
+    var thisDate  = new Date(year, month, day)
+    var isPast    = thisDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    var isToday   = thisDate.toDateString() === todayStr
+    var cls       = 'cal-day'
+    if(isPast)  cls += ' cal-day-past'
+    if(isToday) cls += ' cal-day-today'
+    var dateStr = year + '-' + (month+1) + '-' + day
+    html += '<div class="' + cls + '" ' + (isPast ? '' : 'onclick="selectCalendarDay(this,\'' + dateStr + '\')"') + '>' + day + '</div>'
+  }
+
+  html += '</div>'
+  return html
+}
+
+function buildHours() {
+  var html = ''
+  for(var h = 0; h < 24; h++) {
+    var val = h < 10 ? '0' + h : '' + h
+    html += '<option value="' + val + '"' + (h === 12 ? ' selected' : '') + '>' + val + 'h</option>'
+  }
+  return html
+}
+
+function buildMinutes() {
+  var html = ''
+  var mins = ['00','05','10','15','20','25','30','35','40','45','50','55']
+  mins.forEach(function(m) {
+    html += '<option value="' + m + '">' + m + '</option>'
+  })
+  return html
+}
+
+function buildPlatformButtons() {
+  var reseaux = (window.reseauxLies && window.reseauxLies.length > 0) ? window.reseauxLies : ['tiktok']
+  var labels  = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
+  var html = ''
+  reseaux.forEach(function(r) {
+    html += '<button class="plan-platform-btn" data-reseau="' + r + '" onclick="togglePlatform(this)">' + (labels[r] || r) + '</button>'
+  })
+  return html
+}
+
+function changeCalendarMonth(dir) {
+  if(!window.planState) return
+  window.planState.month += dir
+  if(window.planState.month > 11) { window.planState.month = 0;  window.planState.year++ }
+  if(window.planState.month < 0)  { window.planState.month = 11; window.planState.year-- }
+  var cal = document.getElementById('planCalendar')
+  if(cal) cal.innerHTML = buildCalendar(window.planState.month, window.planState.year, window.planState.today)
+}
+
+function selectCalendarDay(el, dateStr) {
+  document.querySelectorAll('.cal-day').forEach(function(d) { d.classList.remove('cal-day-selected') })
+  el.classList.add('cal-day-selected')
+  if(window.planState) window.planState.date = dateStr
+  var parts = dateStr.split('-')
+  var monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+  var label = document.getElementById('planDateSelected')
+  if(label) label.textContent = '📅 ' + parts[2] + ' ' + monthNames[parseInt(parts[1])-1] + ' ' + parts[0]
+  checkPublishReady()
+}
+
+function togglePlatform(btn) {
+  btn.classList.toggle('plan-platform-btn-active')
+  if(!window.planState) return
+  var r = btn.dataset.reseau
+  var idx = window.planState.plateformes.indexOf(r)
+  if(idx > -1) window.planState.plateformes.splice(idx, 1)
+  else window.planState.plateformes.push(r)
+  checkPublishReady()
+}
+
+function checkPublishReady() {
+  var btn = document.getElementById('planPublishBtn')
+  if(!btn || !window.planState) return
+  var ready = window.planState.date && window.planState.plateformes.length > 0
+  btn.disabled = !ready
+}
+
+function selectCoverFrame()  { showGenAlert('Fonctionnalité disponible après intégration des APIs vidéo.') }
+function generateAICover()   { showGenAlert('Fonctionnalité disponible après intégration des APIs IA.') }
+function handleCoverUpload(input) {
+  if(!input.files || !input.files[0]) return
+  var reader = new FileReader()
+  reader.onload = function(e) {
+    var preview = document.getElementById('planCoverPreview')
+    if(preview) preview.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;border-radius:10px">'
+  }
+  reader.readAsDataURL(input.files[0])
+}
+
+function retourGeneration() {
+  var wrap = document.getElementById('videosGenerationView')
+  if(wrap) wrap.innerHTML = ''
+  initGenerationView()
+}
+
+function confirmerPublication() {
+  if(!window.planState || !window.planState.date || window.planState.plateformes.length === 0) return
+  var parts      = window.planState.date.split('-')
+  var monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+  var dateLabel  = parts[2] + ' ' + monthNames[parseInt(parts[1])-1] + ' ' + parts[0]
+  var heureLabel = document.getElementById('planHeure').value + 'h' + document.getElementById('planMinute').value
+  var platLabels = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
+  var platText   = window.planState.plateformes.map(function(p) { return platLabels[p] || p }).join(', ')
+
+  var overlay = document.createElement('div')
+  overlay.id  = 'confirmPubPopup'
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.88);backdrop-filter:blur(6px)'
+
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(123,97,255,.25);border-radius:24px;padding:36px;max-width:420px;width:100%;text-align:center'
+
+  var icon = document.createElement('div')
+  icon.style.cssText = 'font-size:48px;margin-bottom:16px'
+  icon.textContent = '🚀'
+
+  var title = document.createElement('h3')
+  title.style.cssText = "font-family:'Syne',sans-serif;font-size:19px;font-weight:800;margin-bottom:12px;color:#fff"
+  title.textContent = 'Confirmer la publication'
+
+  var msg = document.createElement('p')
+  msg.style.cssText = 'font-size:13.5px;color:#6b6b80;line-height:1.75;margin-bottom:24px'
+  msg.innerHTML =
+    'Ta vidéo sera publiée le <b style="color:#fff">' + dateLabel + '</b> à <b style="color:#fff">' + heureLabel + '</b>' +
+    '<br>sur <b style="color:#a08bff">' + platText + '</b>.'
+
+  var btnWrap = document.createElement('div')
+  btnWrap.style.cssText = 'display:flex;gap:10px;justify-content:center'
+
+  var btnConfirm = document.createElement('button')
+  btnConfirm.style.cssText = 'padding:12px 24px;border-radius:12px;background:#7b61ff;border:none;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer'
+  btnConfirm.textContent = '✓ Confirmer'
+  btnConfirm.onclick = function() {
+    overlay.remove()
+    savePublication()
+  }
+
+  var btnCancel = document.createElement('button')
+  btnCancel.style.cssText = 'padding:12px 24px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#a0a0b0;font-size:13px;font-weight:600;cursor:pointer'
+  btnCancel.textContent = 'Retour'
+  btnCancel.onclick = function() { overlay.remove() }
+
+  btnWrap.appendChild(btnConfirm)
+  btnWrap.appendChild(btnCancel)
+  box.appendChild(icon)
+  box.appendChild(title)
+  box.appendChild(msg)
+  box.appendChild(btnWrap)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+}
+
+async function savePublication() {
+  if(!currentUser || !window.planState) return
+  var heure     = document.getElementById('planHeure').value
+  var minute    = document.getElementById('planMinute').value
+  var parts     = window.planState.date.split('-')
+  var pubDate   = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]), parseInt(heure), parseInt(minute))
+  var desc      = document.getElementById('planDescription') ? document.getElementById('planDescription').value : ''
+  var hashtags  = document.getElementById('planHashtags')    ? document.getElementById('planHashtags').value    : ''
+
+  for(var i = 0; i < window.planState.plateformes.length; i++) {
+    var reseau = window.planState.plateformes[i]
+    await zenoDb.from('publications').insert({
+      user_id:          currentUser.id,
+      influenceur_id:   generationData.influenceur_id,
+      reseau:           reseau,
+      date_publication: pubDate.toISOString(),
+      statut:           'planifie'
+    })
+    await zenoDb.from('videos').insert({
+      user_id:        currentUser.id,
+      influenceur_id: generationData.influenceur_id,
+      titre:          'Vidéo - ' + generationData.influenceur_nom,
+      description:    desc,
+      hashtags:       hashtags,
+      reseau:         reseau,
+      statut:         'en_attente'
+    })
+  }
+
+  closeGenerationView()
+  showPublicationSuccessPopup()
+}
+
+function showPublicationSuccessPopup() {
+  var overlay = document.createElement('div')
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)'
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(29,158,117,.25);border-radius:24px;padding:36px;max-width:380px;text-align:center'
+  var icon = document.createElement('div')
+  icon.style.cssText = 'font-size:48px;margin-bottom:16px'
+  icon.textContent = '🎉'
+  var title = document.createElement('h3')
+  title.style.cssText = "font-family:'Syne',sans-serif;font-size:19px;font-weight:800;margin-bottom:10px;color:#fff"
+  title.textContent = 'Vidéo planifiée !'
+  var msg = document.createElement('p')
+  msg.style.cssText = 'font-size:13px;color:#6b6b80;line-height:1.65;margin-bottom:24px'
+  msg.textContent = 'Ta vidéo a été planifiée avec succès. Tu peux la retrouver dans Mes vidéos.'
+  var btn = document.createElement('button')
+  btn.style.cssText = 'padding:12px 24px;border-radius:12px;background:#1D9E75;border:none;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer'
+  btn.textContent = 'Voir mes vidéos'
+  btn.onclick = function() { overlay.remove(); showView('videos') }
+  box.appendChild(icon)
+  box.appendChild(title)
+  box.appendChild(msg)
+  box.appendChild(btn)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
 }
