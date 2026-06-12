@@ -90,39 +90,32 @@ function buildGenerationHTML(infs) {
 
     '</div>' +
 
-    /* SECTION 2 — Description */
+    /* SECTION 2 — Centre : Aperçu + Description */
     '<div class="gen-main">' +
+    '<div class="gen-section-title">Aperçu</div>' +
+    '<div id="genPreviewBox" style="width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;min-height:160px;transition:all .3s;overflow:hidden">' +
+    '<div id="genPreviewEmpty" style="text-align:center;padding:24px">' +
+    '<div style="font-size:36px;margin-bottom:10px;opacity:.3">🎬</div>' +
+    '<p style="font-size:11px;color:var(--muted)">Aperçu après génération</p>' +
+    '</div>' +
+    '<div id="genPreviewResult" style="display:none;width:100%;padding:14px">' +
+    '<div id="genPreviewThumb"></div>' +
+    '<div id="genPreviewInfo"></div>' +
+    '</div>' +
+    '</div>' +
     '<div class="gen-section-title">Description de la vidéo</div>' +
-    '<p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;line-height:1.6">Décris comment ta vidéo doit commencer et se terminer. L\'IA générera le script et la vidéo selon ta description.</p>' +
-    '<textarea id="genDescription" class="gen-textarea" placeholder="Ex: La vidéo commence avec Luna qui salue ses abonnés depuis un café parisien. Elle présente les 3 tendances mode de l\'été. La vidéo se termine avec un appel à l\'action pour s\'abonner..." oninput="updateDescription(this.value)"></textarea>' +
+    '<p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;line-height:1.6">Décris comment ta vidéo doit commencer et se terminer.</p>' +
+    '<textarea id="genDescription" class="gen-textarea" placeholder="Ex: La vidéo commence avec Luna qui salue ses abonnés depuis un café parisien..." oninput="updateDescription(this.value)"></textarea>' +
     '<div id="genDescCount" style="font-size:11px;color:var(--muted);text-align:right;margin-top:6px">0 / 500 caractères</div>' +
-
     '<div class="gen-actions">' +
     '<button class="gen-btn-launch" id="genBtnLaunch" onclick="lancerGeneration()">✨ Lancer la génération</button>' +
     '<button class="gen-btn-confirm" id="genBtnConfirm" onclick="confirmerGeneration()" disabled>✓ Confirmer et publier</button>' +
     '</div>' +
-
     '<div id="genStatus" style="display:none;margin-top:16px">' +
     '<div class="gen-progress-wrap">' +
     '<div class="gen-progress-bar" id="genProgressBar"></div>' +
     '</div>' +
     '<div id="genStatusText" style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">Génération en cours...</div>' +
-    '</div>' +
-
-    '</div>' +
-
-    /* SECTION 3 — Aperçu */
-    '<div class="gen-preview">' +
-    '<div class="gen-section-title">Aperçu</div>' +
-    '<div class="gen-preview-box" id="genPreviewBox">' +
-    '<div class="gen-preview-empty" id="genPreviewEmpty">' +
-    '<div style="font-size:40px;margin-bottom:12px;opacity:.3">🎬</div>' +
-    '<p style="font-size:12px;color:var(--muted)">L\'aperçu apparaîtra<br>après la génération</p>' +
-    '</div>' +
-    '<div class="gen-preview-result" id="genPreviewResult" style="display:none">' +
-    '<div class="gen-preview-thumb" id="genPreviewThumb"></div>' +
-    '<div class="gen-preview-info" id="genPreviewInfo"></div>' +
-    '</div>' +
     '</div>' +
     '</div>' +
 

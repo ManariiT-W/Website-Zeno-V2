@@ -254,7 +254,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 .gen-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--white)}
 .gen-back-btn{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 14px;color:var(--muted2);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
 .gen-back-btn:hover{background:rgba(255,255,255,.09);color:var(--white)}
-.gen-layout{display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start}
+.gen-layout{display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start;overflow:hidden}
 .gen-section-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
 
 /* Sidebar */
