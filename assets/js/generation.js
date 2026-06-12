@@ -7,7 +7,7 @@ var generationData = {
   influenceur_id: '',
   influenceur_nom: '',
   format: '9:16',
-  qualite: '1080p',
+  qualite: '720p',
   duree: '30',
   description: '',
   reseau: ''
