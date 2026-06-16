@@ -449,7 +449,7 @@
           <div class="empty-title">Aucune publication planifiée</div>
           <div class="empty-sub">Génère des vidéos puis planifie leur publication sur tes réseaux.</div>
         </div>
-        <div id="planningList" style="display:none;display:flex;flex-direction:column;gap:12px"></div>
+        <div id="planningList" style="display:none;flex-direction:column;gap:12px"></div>
       </div>
     </div>
 
@@ -1041,7 +1041,7 @@ async function loadPlanning() {
                       statut === 'en_cours' ? '⏳ En cours'   : '○ Planifiée'
 
     var platLabels  = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
-    var infNom      = pub.influenceurs ? pub.influenceurs.nom : 'Influenceur'
+    var infNom      = 'Influenceur'
     var dateStr     = pubDate.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
     var heureStr    = pubDate.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' })
 
