@@ -335,3 +335,19 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 .plan-publish-btn:hover:not(:disabled){box-shadow:0 0 28px rgba(123,97,255,.5);transform:translateY(-1px)}
 .plan-publish-btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
 @media(max-width:768px){.plan-layout{grid-template-columns:1fr}}
+
+/* ═══ PLANNING CALENDRIER ═══ */
+.planning-calendar-wrap{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:20px}
+.planning-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.planning-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.planning-cal-day-name{font-size:10px;font-weight:700;color:var(--muted);text-align:center;padding:4px 0;text-transform:uppercase}
+.planning-cal-day{min-height:70px;border-radius:var(--r-sm);padding:6px;border:1px solid transparent;transition:border-color .2s;position:relative}
+.planning-cal-day:hover{border-color:rgba(123,97,255,.2);background:rgba(123,97,255,.04)}
+.planning-cal-day-num{font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:4px}
+.planning-cal-day-today .planning-cal-day-num{color:var(--violet2);font-weight:800}
+.planning-cal-day-past .planning-cal-day-num{color:rgba(255,255,255,.2)}
+.planning-cal-event{font-size:9px;font-weight:600;padding:3px 5px;border-radius:4px;margin-bottom:3px;line-height:1.3;cursor:pointer;transition:opacity .2s}
+.planning-cal-event:hover{opacity:.8}
+.event-planifie{background:rgba(123,97,255,.2);color:var(--violet2)}
+.event-publiee{background:rgba(29,158,117,.2);color:var(--green)}
+.event-echec{background:rgba(239,68,68,.15);color:#ef4444}

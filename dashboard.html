@@ -443,11 +443,24 @@
         <div class="section-head-title">Planning de publication</div>
         <button class="btn-sm btn-violet" onclick="showView('videos')">+ Générer une vidéo</button>
       </div>
-      <div id="planningWrap">
-        <div id="planningEmpty" class="empty-state">
-          <div class="empty-icon">📅</div>
-          <div class="empty-title">Aucune publication planifiée</div>
-          <div class="empty-sub">Génère des vidéos puis planifie leur publication sur tes réseaux.</div>
+
+      <!-- Calendrier -->
+      <div class="planning-calendar-wrap">
+        <div class="planning-cal-nav">
+          <button class="cal-nav-btn" onclick="changePlanningMonth(-1)">‹</button>
+          <span class="cal-month-label" id="planningMonthLabel"></span>
+          <button class="cal-nav-btn" onclick="changePlanningMonth(1)">›</button>
+        </div>
+        <div class="planning-cal-grid" id="planningCalGrid"></div>
+      </div>
+
+      <!-- Liste -->
+      <div style="margin-top:24px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--muted2)">Toutes les publications</div>
+        <div id="planningEmpty" style="text-align:center;padding:40px 20px;display:none">
+          <div style="font-size:40px;margin-bottom:12px;opacity:.4">📅</div>
+          <div style="font-size:15px;font-weight:700;color:var(--muted2);margin-bottom:6px">Aucune publication planifiée</div>
+          <div style="font-size:13px;color:var(--muted)">Génère des vidéos puis planifie leur publication.</div>
         </div>
         <div id="planningList" style="display:none;flex-direction:column;gap:12px"></div>
       </div>
@@ -997,6 +1010,8 @@ function showReseauPopup(type, reseau) {
 }
 
 /* PLANNING */
+var planningState = { month: new Date().getMonth(), year: new Date().getFullYear(), publications: [] }
+
 async function loadPlanning() {
   if(!currentUser) return
   var empty = document.getElementById('planningEmpty')
@@ -1012,51 +1027,112 @@ async function loadPlanning() {
   if(!data || data.length === 0) {
     empty.style.display = 'block'
     list.style.display  = 'none'
+    renderPlanningCalendar([])
     return
   }
 
+  // Mettre à jour les statuts des publications passées
+  var now = new Date()
+  for(var i = 0; i < data.length; i++) {
+    var pub = data[i]
+    var pubDate = new Date(pub.date_publication)
+    if(pubDate < now && pub.statut === 'planifie') {
+      pub.statut = 'publiee'
+      await zenoDb.from('publications').update({ statut:'publiee' }).eq('id', pub.id)
+    }
+  }
+
+  planningState.publications = data
   empty.style.display = 'none'
   list.style.display  = 'flex'
+  renderPlanningCalendar(data)
+  renderPlanningList(data)
+}
 
-  var now = new Date()
+function renderPlanningCalendar(pubs) {
+  var grid      = document.getElementById('planningCalGrid')
+  var label     = document.getElementById('planningMonthLabel')
+  if(!grid || !label) return
+
+  var month     = planningState.month
+  var year      = planningState.year
+  var monthNames= ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+  var dayNames  = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
+  var today     = new Date()
+  var firstDay  = new Date(year, month, 1).getDay()
+  firstDay      = firstDay === 0 ? 6 : firstDay - 1
+  var daysInMonth = new Date(year, month + 1, 0).getDate()
+
+  label.textContent = monthNames[month] + ' ' + year
+
   var html = ''
+  dayNames.forEach(function(d) {
+    html += '<div class="planning-cal-day-name">' + d + '</div>'
+  })
 
+  for(var i = 0; i < firstDay; i++) {
+    html += '<div class="planning-cal-day"></div>'
+  }
+
+  for(var day = 1; day <= daysInMonth; day++) {
+    var thisDate  = new Date(year, month, day)
+    var isPast    = thisDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    var isToday   = thisDate.toDateString() === today.toDateString()
+    var cls       = 'planning-cal-day'
+    if(isPast)   cls += ' planning-cal-day-past'
+    if(isToday)  cls += ' planning-cal-day-today'
+
+    var eventsHtml = ''
+    pubs.forEach(function(pub) {
+      var pubDate = new Date(pub.date_publication)
+      if(pubDate.getDate() === day && pubDate.getMonth() === month && pubDate.getFullYear() === year) {
+        var evtCls   = pub.statut === 'publiee' ? 'event-publiee' : pub.statut === 'echec' ? 'event-echec' : 'event-planifie'
+        var platLabels = { tiktok:'TikTok', instagram:'Insta', youtube:'YouTube' }
+        var heure    = pubDate.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
+        eventsHtml  += '<div class="planning-cal-event ' + evtCls + '">🤖 ' + (platLabels[pub.reseau] || pub.reseau) + ' · ' + heure + '</div>'
+      }
+    })
+
+    html += '<div class="' + cls + '"><div class="planning-cal-day-num">' + day + '</div>' + eventsHtml + '</div>'
+  }
+
+  grid.innerHTML = html
+}
+
+function renderPlanningList(data) {
+  var list = document.getElementById('planningList')
+  if(!list) return
+  var now        = new Date()
+  var platLabels = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
+  var html = ''
   data.forEach(function(pub) {
-    var pubDate   = new Date(pub.date_publication)
-    var isPast    = pubDate < now
-    var isToday   = pubDate.toDateString() === now.toDateString()
-    var statut    = pub.statut
-
-    if(isPast && statut === 'planifie') {
-      statut = 'publiee'
-      zenoDb.from('publications').update({ statut:'publiee' }).eq('id', pub.id)
-      zenoDb.from('videos').update({ statut:'publiee' }).eq('influenceur_id', pub.influenceur_id).eq('reseau', pub.reseau)
-    }
-
-    var statusColor = statut === 'publiee'  ? 'var(--green)'  :
-                      statut === 'echec'    ? '#ef4444'       :
-                      statut === 'en_cours' ? 'var(--gold)'   : 'var(--violet2)'
-    var statusLabel = statut === 'publiee'  ? '✓ Publiée'     :
-                      statut === 'echec'    ? '✗ Échec'       :
-                      statut === 'en_cours' ? '⏳ En cours'   : '○ Planifiée'
-
-    var platLabels  = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
-    var infNom      = 'Influenceur'
-    var dateStr     = pubDate.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
-    var heureStr    = pubDate.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' })
-
+    var pubDate     = new Date(pub.date_publication)
+    var statusColor = pub.statut === 'publiee'  ? 'var(--green)'  :
+                      pub.statut === 'echec'    ? '#ef4444'       :
+                      pub.statut === 'en_cours' ? 'var(--gold)'   : 'var(--violet2)'
+    var statusLabel = pub.statut === 'publiee'  ? '✓ Publiée'     :
+                      pub.statut === 'echec'    ? '✗ Échec'       :
+                      pub.statut === 'en_cours' ? '⏳ En cours'   : '○ Planifiée'
+    var dateStr  = pubDate.toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'})
+    var heureStr = pubDate.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
     html +=
-      '<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:18px 20px;display:flex;align-items:center;gap:16px;transition:border-color .2s" onmouseover="this.style.borderColor=\'rgba(123,97,255,.3)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,.07)\'">' +
-      '<div style="width:44px;height:44px;border-radius:10px;background:rgba(123,97,255,.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📅</div>' +
+      '<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px 20px;display:flex;align-items:center;gap:16px;transition:border-color .2s" onmouseover="this.style.borderColor=\'rgba(123,97,255,.3)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,.07)\'">' +
+      '<div style="width:42px;height:42px;border-radius:10px;background:rgba(123,97,255,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📅</div>' +
       '<div style="flex:1;min-width:0">' +
-      '<div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:3px">' + infNom + ' → ' + (platLabels[pub.reseau] || pub.reseau) + '</div>' +
+      '<div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:3px">' + (platLabels[pub.reseau] || pub.reseau) + '</div>' +
       '<div style="font-size:11px;color:var(--muted)">' + dateStr + ' à ' + heureStr + '</div>' +
       '</div>' +
       '<div style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;background:rgba(0,0,0,.3);color:' + statusColor + ';flex-shrink:0">' + statusLabel + '</div>' +
       '</div>'
   })
-
   list.innerHTML = html
+}
+
+function changePlanningMonth(dir) {
+  planningState.month += dir
+  if(planningState.month > 11) { planningState.month = 0;  planningState.year++ }
+  if(planningState.month < 0)  { planningState.month = 11; planningState.year-- }
+  renderPlanningCalendar(planningState.publications)
 }
 
 /* ENTER KEY LOGIN */
