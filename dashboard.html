@@ -1005,7 +1005,7 @@ async function loadPlanning() {
 
   const { data } = await zenoDb
     .from('publications')
-    .select('*, influenceurs(nom)')
+    .select('*')
     .eq('user_id', currentUser.id)
     .order('date_publication', {ascending:true})
 
