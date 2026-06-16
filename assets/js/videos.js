@@ -34,6 +34,7 @@ if(data) {
   })
 }
 
+
   if(data && data.length > 0) {
     empty.style.display = 'none';
     grid.style.display  = 'grid';
