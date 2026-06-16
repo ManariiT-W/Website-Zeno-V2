@@ -17,35 +17,38 @@ async function loadVideos() {
     .eq('user_id', currentUser.id)
     .order('created_at', {ascending:false});
 
-    var now = new Date()
-if(data) {
-  data.forEach(async function(v) {
-    var pubDate = new Date(v.created_at)
-    if(v.statut === 'en_attente') {
-      var { data: pub } = await zenoDb.from('publications').select('date_publication').eq('influenceur_id', v.influenceur_id).eq('reseau', v.reseau).single()
-      if(pub) {
-        var planDate = new Date(pub.date_publication)
-        if(planDate < now) {
-          await zenoDb.from('videos').update({ statut:'publiee' }).eq('id', v.id)
-          v.statut = 'publiee'
-        }
-      }
-    }
-  })
-}
-
-
-  if(data && data.length > 0) {
-    empty.style.display = 'none';
-    grid.style.display  = 'grid';
-    if(floatBtn) floatBtn.style.display = 'block';
-    document.getElementById('stat-vid').textContent = data.length;
-    renderVideoCards(data);
-  } else {
+  if(!data || data.length === 0) {
     empty.style.display = 'block';
     grid.style.display  = 'none';
     if(floatBtn) floatBtn.style.display = 'none';
+    return;
   }
+
+  var now = new Date();
+  for(var i = 0; i < data.length; i++) {
+    var v = data[i];
+    if(v.statut === 'en_attente') {
+      const { data: pub } = await zenoDb
+        .from('publications')
+        .select('date_publication')
+        .eq('influenceur_id', v.influenceur_id)
+        .eq('reseau', v.reseau)
+        .single();
+      if(pub) {
+        var planDate = new Date(pub.date_publication);
+        if(planDate < now) {
+          await zenoDb.from('videos').update({ statut:'publiee' }).eq('id', v.id);
+          v.statut = 'publiee';
+        }
+      }
+    }
+  }
+
+  empty.style.display = 'none';
+  grid.style.display  = 'grid';
+  if(floatBtn) floatBtn.style.display = 'block';
+  document.getElementById('stat-vid').textContent = data.length;
+  renderVideoCards(data);
 }
 
 /* ─── AFFICHER LES CARTES VIDÉOS ─── */
