@@ -28,14 +28,15 @@ async function loadVideos() {
   for(var i = 0; i < data.length; i++) {
     var v = data[i];
     if(v.statut === 'en_attente') {
-      const { data: pub } = await zenoDb
+      const { data: pubs } = await zenoDb
         .from('publications')
         .select('date_publication')
         .eq('influenceur_id', v.influenceur_id)
         .eq('reseau', v.reseau)
-        .single();
-      if(pub) {
-        var planDate = new Date(pub.date_publication);
+        .order('date_publication', {ascending:false})
+        .limit(1);
+      if(pubs && pubs.length > 0) {
+        var planDate = new Date(pubs[0].date_publication);
         if(planDate < now) {
           await zenoDb.from('videos').update({ statut:'publiee' }).eq('id', v.id);
           v.statut = 'publiee';
