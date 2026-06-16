@@ -17,7 +17,7 @@ async function loadVideos() {
     .eq('user_id', currentUser.id)
     .order('created_at', {ascending:false});
 
-  var now = new Date()
+        var now = new Date()
     if(data) {
       data.forEach(async function(v) {
         var pubDate = new Date(v.created_at)
