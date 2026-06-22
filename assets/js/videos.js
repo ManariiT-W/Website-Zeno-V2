@@ -205,6 +205,204 @@ function closeGenerationView() {
 }
 
 /* ─── DÉTAILS VIDÉO (3 points) ─── */
+/* ─── DÉTAILS VIDÉO (3 points) ─── */
 function openVideoDetails(videoId) {
-  console.log('Détails vidéo :', videoId);
+  var existing = document.getElementById('videoDetailsPopup')
+  if(existing) existing.remove()
+
+  // Chercher la vidéo dans le DOM pour récupérer les données
+  zenoDb
+    .from('videos')
+    .select('*')
+    .eq('id', videoId)
+    .single()
+    .then(function({ data: v }) {
+      if(!v) return
+
+      var statusColor = v.statut === 'publiee'  ? 'var(--green)'  :
+                        v.statut === 'erreur'   ? '#ef4444'       :
+                        v.statut === 'en_cours' ? 'var(--gold)'   : 'var(--muted2)'
+      var statusLabel = v.statut === 'publiee'  ? '✓ Publiée'     :
+                        v.statut === 'erreur'   ? '✗ Erreur'      :
+                        v.statut === 'en_cours' ? '⏳ En cours'   : '○ En attente'
+      var date = new Date(v.created_at).toLocaleDateString('fr-FR', {
+        day:'numeric', month:'long', year:'numeric'
+      })
+
+      var overlay = document.createElement('div')
+      overlay.id = 'videoDetailsPopup'
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)'
+
+      var box = document.createElement('div')
+      box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(123,97,255,.2);border-radius:24px;padding:32px;width:100%;max-width:460px;position:relative'
+
+      // Bouton fermer
+      var closeBtn = document.createElement('button')
+      closeBtn.style.cssText = 'position:absolute;top:16px;right:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#6b6b80;cursor:pointer;font-size:14px'
+      closeBtn.textContent = '✕'
+      closeBtn.onclick = function() { overlay.remove() }
+
+      // Titre
+      var titleEl = document.createElement('h3')
+      titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:20px;color:#fff;padding-right:32px"
+      titleEl.textContent = v.titre || 'Vidéo sans titre'
+
+      // Infos
+      var rows = [
+        { label: 'Réseau',       value: v.reseau || '—' },
+        { label: 'Statut',       value: statusLabel, color: statusColor },
+        { label: 'Date création', value: date },
+        { label: 'Description',  value: v.description || '—' },
+        { label: 'Hashtags',     value: v.hashtags || '—' }
+      ]
+
+      var infoWrap = document.createElement('div')
+      infoWrap.style.cssText = 'display:flex;flex-direction:column;gap:12px;margin-bottom:24px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px'
+
+      rows.forEach(function(row) {
+        var rowEl = document.createElement('div')
+        rowEl.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-start;gap:12px'
+        var labelEl = document.createElement('span')
+        labelEl.style.cssText = 'font-size:11px;color:#6b6b80;flex-shrink:0;padding-top:1px'
+        labelEl.textContent = row.label
+        var valueEl = document.createElement('span')
+        valueEl.style.cssText = 'font-size:12.5px;color:' + (row.color || '#a0a0b0') + ';text-align:right;line-height:1.5'
+        valueEl.textContent = row.value
+        rowEl.appendChild(labelEl)
+        rowEl.appendChild(valueEl)
+        infoWrap.appendChild(rowEl)
+      })
+
+      // Avertissement suppression
+      var warningEl = document.createElement('p')
+      warningEl.style.cssText = 'font-size:11.5px;color:#6b6b80;text-align:center;margin-bottom:16px;line-height:1.5'
+      warningEl.textContent = 'ℹ️ La suppression retire la vidéo de Zeno uniquement. Elle reste publiée sur le réseau social.'
+
+      // Boutons
+      var btnWrap = document.createElement('div')
+      btnWrap.style.cssText = 'display:flex;gap:10px'
+
+      var btnClose = document.createElement('button')
+      btnClose.style.cssText = 'flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#a0a0b0;font-size:13px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+      btnClose.textContent = 'Fermer'
+      btnClose.onclick = function() { overlay.remove() }
+
+      var btnDelete = document.createElement('button')
+      btnDelete.style.cssText = 'flex:1;padding:12px;border-radius:12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;font-size:13px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif;transition:all .2s'
+      btnDelete.textContent = '🗑 Supprimer'
+      btnDelete.onmouseover = function() { this.style.background='rgba(239,68,68,.2)' }
+      btnDelete.onmouseout  = function() { this.style.background='rgba(239,68,68,.1)' }
+      btnDelete.onclick = function() {
+        overlay.remove()
+        confirmDeleteVideo(videoId, v.titre || 'cette vidéo')
+      }
+
+      btnWrap.appendChild(btnClose)
+      btnWrap.appendChild(btnDelete)
+      box.appendChild(closeBtn)
+      box.appendChild(titleEl)
+      box.appendChild(infoWrap)
+      box.appendChild(warningEl)
+      box.appendChild(btnWrap)
+      overlay.appendChild(box)
+      document.body.appendChild(overlay)
+
+      overlay.addEventListener('click', function(e) {
+        if(e.target === overlay) overlay.remove()
+      })
+    })
+}
+
+/* ─── CONFIRMATION SUPPRESSION ─── */
+function confirmDeleteVideo(videoId, titre) {
+  var overlay = document.createElement('div')
+  overlay.id = 'deleteConfirmPopup'
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.88);backdrop-filter:blur(6px)'
+
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(239,68,68,.2);border-radius:24px;padding:36px;width:100%;max-width:400px;text-align:center'
+
+  var icon = document.createElement('div')
+  icon.style.cssText = 'font-size:44px;margin-bottom:16px'
+  icon.textContent = '🗑'
+
+  var titleEl = document.createElement('h3')
+  titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:10px;color:#fff"
+  titleEl.textContent = 'Supprimer la vidéo ?'
+
+  var msgEl = document.createElement('p')
+  msgEl.style.cssText = 'font-size:13px;color:#6b6b80;line-height:1.65;margin-bottom:8px'
+  msgEl.innerHTML = 'Tu es sur le point de supprimer <b style="color:#fff">' + titre + '</b>.'
+
+  var msg2El = document.createElement('p')
+  msg2El.style.cssText = 'font-size:12px;color:#ef4444;margin-bottom:24px;font-weight:600'
+  msg2El.textContent = 'Cette action est irréversible.'
+
+  var btnWrap = document.createElement('div')
+  btnWrap.style.cssText = 'display:flex;gap:10px;justify-content:center'
+
+  var btnCancel = document.createElement('button')
+  btnCancel.style.cssText = 'flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#a0a0b0;font-size:13px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnCancel.textContent = 'Annuler'
+  btnCancel.onclick = function() { overlay.remove() }
+
+  var btnConfirm = document.createElement('button')
+  btnConfirm.style.cssText = 'flex:1;padding:12px;border-radius:12px;background:#ef4444;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnConfirm.textContent = 'Oui, supprimer'
+  btnConfirm.onclick = function() {
+    overlay.remove()
+    deleteVideo(videoId)
+  }
+
+  btnWrap.appendChild(btnCancel)
+  btnWrap.appendChild(btnConfirm)
+  box.appendChild(icon)
+  box.appendChild(titleEl)
+  box.appendChild(msgEl)
+  box.appendChild(msg2El)
+  box.appendChild(btnWrap)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+}
+
+/* ─── SUPPRIMER LA VIDÉO ─── */
+async function deleteVideo(videoId) {
+  // Supprimer dans publications d'abord (clé étrangère)
+  await zenoDb
+    .from('publications')
+    .delete()
+    .eq('influenceur_id', (await zenoDb.from('videos').select('influenceur_id').eq('id', videoId).single()).data?.influenceur_id)
+    .eq('user_id', currentUser.id)
+
+  // Supprimer la vidéo
+  const { error } = await zenoDb
+    .from('videos')
+    .delete()
+    .eq('id', videoId)
+    .eq('user_id', currentUser.id)
+
+  if(error) {
+    showVideoCondPopup('error')
+    return
+  }
+
+  // Recharger les vidéos
+  loadVideos()
+
+  // Popup succès
+  var overlay = document.createElement('div')
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.8);backdrop-filter:blur(4px)'
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(29,158,117,.2);border-radius:20px;padding:28px;max-width:340px;text-align:center'
+  var p = document.createElement('p')
+  p.style.cssText = 'font-size:15px;font-weight:700;color:#1D9E75;margin-bottom:6px'
+  p.textContent = '✓ Vidéo supprimée'
+  var sub = document.createElement('p')
+  sub.style.cssText = 'font-size:12.5px;color:#6b6b80'
+  sub.textContent = 'La vidéo a été retirée de Zeno.'
+  box.appendChild(p)
+  box.appendChild(sub)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+  setTimeout(function() { overlay.remove() }, 2000)
 }
