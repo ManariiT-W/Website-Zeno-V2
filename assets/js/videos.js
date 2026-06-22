@@ -365,7 +365,6 @@ function confirmDeleteVideo(videoId, titre) {
   document.body.appendChild(overlay)
 }
 
-/* ─── SUPPRIMER LA VIDÉO ─── */
 async function deleteVideo(videoId) {
   // Supprimer uniquement les publications liées à cette vidéo
   await zenoDb
@@ -380,7 +379,11 @@ async function deleteVideo(videoId) {
     .delete()
     .eq('id', videoId)
     .eq('user_id', currentUser.id)
-    
+
+  if(error) {
+    showVideoCondPopup('error')
+    return
+  }
 
   // Recharger les vidéos
   loadVideos()
