@@ -367,11 +367,11 @@ function confirmDeleteVideo(videoId, titre) {
 
 /* ─── SUPPRIMER LA VIDÉO ─── */
 async function deleteVideo(videoId) {
-  // Supprimer dans publications d'abord (clé étrangère)
+  // Supprimer uniquement les publications liées à cette vidéo
   await zenoDb
     .from('publications')
     .delete()
-    .eq('influenceur_id', (await zenoDb.from('videos').select('influenceur_id').eq('id', videoId).single()).data?.influenceur_id)
+    .eq('video_id', videoId)
     .eq('user_id', currentUser.id)
 
   // Supprimer la vidéo
@@ -380,11 +380,7 @@ async function deleteVideo(videoId) {
     .delete()
     .eq('id', videoId)
     .eq('user_id', currentUser.id)
-
-  if(error) {
-    showVideoCondPopup('error')
-    return
-  }
+    
 
   // Recharger les vidéos
   loadVideos()
