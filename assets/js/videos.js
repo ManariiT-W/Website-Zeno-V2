@@ -364,7 +364,7 @@ function confirmDeleteVideo(videoId, titre) {
   overlay.appendChild(box)
   document.body.appendChild(overlay)
 }
- // Teste zzs
+
 async function deleteVideo(videoId) {
   // Supprimer uniquement les publications liées à cette vidéo
   await zenoDb
