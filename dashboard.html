@@ -70,6 +70,9 @@
       <div class="sidebar-item" id="nav-historique" onclick="showView('historique')">
         <span class="sidebar-item-icon">📋</span>Historique
       </div>
+      <div class="sidebar-item" id="nav-scripts" onclick="showView('scripts')">
+        <span class="sidebar-item-icon">📝</span>Scripts
+      </div>
       <div class="sidebar-item" id="nav-parametres" onclick="showView('parametres')">
         <span class="sidebar-item-icon">⚙️</span>Paramètres
       </div>
@@ -528,6 +531,64 @@
     
     </div>
 
+    <!-- ═══ VUE SCRIPTS ═══ -->
+    <div class="view" id="view-scripts">
+    
+      <!-- HEADER -->
+      <div class="section-head">
+        <div class="section-head-title">Bibliothèque de scripts</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button onclick="openScriptIA()" class="btn-sm btn-outline-sm" id="btnScriptIA">✨ Générer avec l'IA</button>
+          <button onclick="openScriptForm()" class="btn-sm btn-violet" id="btnNouveauScript">+ Nouveau script</button>
+        </div>
+      </div>
+    
+      <!-- FILTRES -->
+      <div class="historique-filters" style="margin-bottom:20px">
+        <select id="filtreScriptNiche" onchange="filtrerScripts()" class="historique-select">
+          <option value="all">Toutes les niches</option>
+          <option value="mode">Mode & Lifestyle</option>
+          <option value="fitness">Fitness & Nutrition</option>
+          <option value="tech">Tech & Innovation</option>
+          <option value="food">Cuisine & Gastronomie</option>
+          <option value="gaming">Gaming & Esport</option>
+          <option value="travel">Voyage & Aventure</option>
+          <option value="business">Business & Finance</option>
+          <option value="beauty">Beauté & Skincare</option>
+        </select>
+    
+        <select id="filtreScriptInfluenceur" onchange="filtrerScripts()" class="historique-select">
+          <option value="all">Tous les influenceurs</option>
+        </select>
+    
+        <span id="scriptsCount" style="font-size:12px;color:var(--muted);font-weight:500;margin-left:auto">0 script</span>
+      </div>
+    
+      <!-- EMPTY STATE UPGRADE (Starter) -->
+      <div id="scriptsUpgradeWrap" style="display:none;text-align:center;padding:60px 20px">
+        <div style="font-size:56px;margin-bottom:20px">🔒</div>
+        <h3 style="font-size:18px;font-weight:800;margin-bottom:10px;color:var(--white)">Fonctionnalité Nova</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6">La bibliothèque de scripts est
+          disponible à partir du plan <span style="color:var(--violet2);font-weight:700">Nova</span>.<br>Passe au plan Nova
+          pour créer et réutiliser tes scripts.</p>
+        <button onclick="window.location.href='index.html#tarifs'" class="btn-sm btn-violet"
+          style="padding:12px 28px;font-size:14px">Passer à Nova →</button>
+      </div>
+    
+      <!-- EMPTY STATE (aucun script) -->
+      <div id="scriptsEmpty" style="display:none;text-align:center;padding:60px 20px">
+        <div style="font-size:48px;margin-bottom:16px;opacity:.4">📝</div>
+        <div style="font-size:16px;font-weight:700;color:var(--muted2);margin-bottom:8px">Aucun script pour l'instant</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:24px">Crée ton premier script ou génère-en un avec l'IA.
+        </div>
+        <button onclick="openScriptForm()" class="btn-sm btn-violet">+ Créer un script</button>
+      </div>
+    
+      <!-- GRILLE SCRIPTS -->
+      <div id="scriptsGrid" style="display:none;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"></div>
+    
+    </div>
+
     <!-- ═══ VUE PARAMÈTRES ═══ -->
     <div class="view" id="view-parametres">
       <div style="max-width:560px;display:flex;flex-direction:column;gap:16px">
@@ -802,7 +863,8 @@ var viewTitles = {
   videos:       { title:'Mes vidéos',           sub:'Toutes les vidéos générées' },
   planning:     { title:'Planning',             sub:'Planifier tes publications' },
   parametres:  { title:'Paramètres',                sub:'Gérer ton compte' },
-  historique:  { title:'Historique des publications', sub:'Toutes tes publications passées' }
+  historique: { title:'Historique des publications', sub:'Toutes tes publications passées' },
+  scripts:    { title:'Bibliothèque de scripts',     sub:'Crée et réutilise tes meilleurs scripts' }
 }
 function showView(id) {
   // Vérifier limite influenceurs avant d'ouvrir la création
@@ -818,6 +880,7 @@ function _showView(id) {
   if(id === 'videos')     { setTimeout(loadVideos, 100); }
   if(id === 'planning')   { setTimeout(loadPlanning, 100); }
   if(id === 'historique') { setTimeout(loadHistorique, 100); }
+  if(id === 'scripts')    { setTimeout(loadScripts, 100); }
   document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active') })
   document.querySelectorAll('.sidebar-item').forEach(function(i) { i.classList.remove('active') })
   document.getElementById('view-' + id).classList.add('active')
@@ -1390,6 +1453,454 @@ function openHistoriqueDetails(pubId) {
   overlay.addEventListener('click', function(e) {
     if(e.target === overlay) overlay.remove()
   })
+}
+
+/* ═══ SCRIPTS ═══ */
+var scriptsData = []
+var scriptsInfluenceurs = []
+
+async function loadScripts() {
+  if(!currentUser) return
+
+  var plan = window.currentPlanUser || 'starter'
+
+  // Vérifier le plan
+  if(plan === 'starter') {
+    document.getElementById('scriptsUpgradeWrap').style.display = 'block'
+    document.getElementById('scriptsEmpty').style.display       = 'none'
+    document.getElementById('scriptsGrid').style.display        = 'none'
+    document.getElementById('scriptsCount').textContent         = ''
+    document.getElementById('btnNouveauScript').style.opacity   = '.4'
+    document.getElementById('btnNouveauScript').style.pointerEvents = 'none'
+    document.getElementById('btnScriptIA').style.opacity        = '.4'
+    document.getElementById('btnScriptIA').style.pointerEvents  = 'none'
+    return
+  }
+
+  // Charger les scripts
+  const { data: scripts } = await zenoDb
+    .from('scripts')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false })
+
+  // Charger les influenceurs pour le filtre
+  const { data: infs } = await zenoDb
+    .from('influenceurs')
+    .select('id,nom')
+    .eq('user_id', currentUser.id)
+
+  scriptsData         = scripts || []
+  scriptsInfluenceurs = infs   || []
+
+  // Remplir le select influenceurs
+  var selectInf = document.getElementById('filtreScriptInfluenceur')
+  if(selectInf) {
+    selectInf.innerHTML = '<option value="all">Tous les influenceurs</option>'
+    scriptsInfluenceurs.forEach(function(inf) {
+      selectInf.innerHTML += '<option value="' + inf.id + '">' + inf.nom + '</option>'
+    })
+  }
+
+  filtrerScripts()
+}
+
+function filtrerScripts() {
+  var niche       = document.getElementById('filtreScriptNiche')?.value || 'all'
+  var influenceur = document.getElementById('filtreScriptInfluenceur')?.value || 'all'
+
+  var filtered = scriptsData.filter(function(s) {
+    if(niche !== 'all' && s.niche !== niche) return false
+    if(influenceur !== 'all' && s.influenceur_id !== influenceur) return false
+    return true
+  })
+
+  renderScripts(filtered)
+}
+
+function renderScripts(list) {
+  var grid    = document.getElementById('scriptsGrid')
+  var empty   = document.getElementById('scriptsEmpty')
+  var countEl = document.getElementById('scriptsCount')
+
+  var label = list.length === 0 ? '0 script' :
+              list.length === 1 ? '1 script'  :
+              list.length + ' scripts'
+  if(countEl) countEl.textContent = label
+
+  if(!list || list.length === 0) {
+    empty.style.display = 'block'
+    grid.style.display  = 'none'
+    return
+  }
+
+  empty.style.display = 'none'
+  grid.style.display  = 'grid'
+
+  var niches = {mode:'Mode & Lifestyle',fitness:'Fitness',tech:'Tech',food:'Cuisine',gaming:'Gaming',travel:'Voyage',business:'Business',beauty:'Beauté'}
+
+  var html = ''
+  list.forEach(function(s) {
+    var inf    = scriptsInfluenceurs.find(function(i) { return i.id === s.influenceur_id })
+    var date   = new Date(s.created_at).toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
+
+    html +=
+      '<div class="script-card">' +
+      '<div class="script-card-header">' +
+      '<div class="script-card-title">' + s.titre + '</div>' +
+      '<button class="script-card-dots" onclick="openScriptMenu(\'' + s.id + '\',event)">···</button>' +
+      '</div>' +
+      (s.niche ? '<span class="script-card-niche">' + (niches[s.niche] || s.niche) + '</span>' : '') +
+      '<div class="script-card-preview">' + s.contenu + '</div>' +
+      '<div class="script-card-footer">' +
+      '<span class="script-card-meta">' + date + '</span>' +
+      (inf ? '<span class="script-card-inf">🤖 ' + inf.nom + '</span>' : '<span class="script-card-meta">Aucun influenceur</span>') +
+      '</div>' +
+      '</div>'
+  })
+
+  grid.innerHTML = html
+}
+
+function openScriptMenu(scriptId, e) {
+  e.stopPropagation()
+  var existing = document.getElementById('scriptMenuPopup')
+  if(existing) existing.remove()
+
+  var menu = document.createElement('div')
+  menu.id = 'scriptMenuPopup'
+  menu.style.cssText = 'position:fixed;z-index:400;background:#0d0d1f;border:1px solid rgba(123,97,255,.2);border-radius:12px;padding:6px;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.4)'
+  menu.style.top  = (e.clientY + 8) + 'px'
+  menu.style.left = (e.clientX - 140) + 'px'
+
+  var items = [
+    { icon:'👁', label:'Voir le script',    action: function() { menu.remove(); openScriptDetails(scriptId) } },
+    { icon:'✏️', label:'Modifier',          action: function() { menu.remove(); openScriptEdit(scriptId) } },
+    { icon:'🗑', label:'Supprimer',         action: function() { menu.remove(); confirmDeleteScript(scriptId) }, red: true }
+  ]
+
+  items.forEach(function(item) {
+    var btn = document.createElement('button')
+    btn.style.cssText = 'display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:8px;background:none;border:none;color:' + (item.red ? '#ef4444' : '#a0a0b0') + ';font-size:13px;font-weight:500;cursor:pointer;font-family:\'DM Sans\',sans-serif;transition:background .2s;text-align:left'
+    btn.innerHTML = item.icon + ' ' + item.label
+    btn.onmouseover = function() { this.style.background = item.red ? 'rgba(239,68,68,.08)' : 'rgba(255,255,255,.05)' }
+    btn.onmouseout  = function() { this.style.background = 'none' }
+    btn.onclick = item.action
+    menu.appendChild(btn)
+  })
+
+  document.body.appendChild(menu)
+  setTimeout(function() {
+    document.addEventListener('click', function handler() {
+      menu.remove()
+      document.removeEventListener('click', handler)
+    })
+  }, 10)
+}
+
+function openScriptDetails(scriptId) {
+  var s = scriptsData.find(function(x) { return x.id === scriptId })
+  if(!s) return
+
+  var inf    = scriptsInfluenceurs.find(function(i) { return i.id === s.influenceur_id })
+  var niches = {mode:'Mode & Lifestyle',fitness:'Fitness',tech:'Tech',food:'Cuisine',gaming:'Gaming',travel:'Voyage',business:'Business',beauty:'Beauté'}
+
+  var overlay = document.createElement('div')
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)'
+
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(123,97,255,.2);border-radius:24px;padding:32px;width:100%;max-width:520px;position:relative;max-height:80vh;overflow-y:auto'
+
+  var closeBtn = document.createElement('button')
+  closeBtn.style.cssText = 'position:absolute;top:16px;right:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#6b6b80;cursor:pointer;font-size:14px'
+  closeBtn.textContent = '✕'
+  closeBtn.onclick = function() { overlay.remove() }
+
+  var titleEl = document.createElement('h3')
+  titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:6px;color:#fff;padding-right:32px"
+  titleEl.textContent = s.titre
+
+  var metaEl = document.createElement('div')
+  metaEl.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap'
+  metaEl.innerHTML =
+    (s.niche ? '<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(123,97,255,.1);color:var(--violet2)">' + (niches[s.niche] || s.niche) + '</span>' : '') +
+    (inf ? '<span style="font-size:11px;color:var(--violet2)">🤖 ' + inf.nom + '</span>' : '')
+
+  var contenuEl = document.createElement('div')
+  contenuEl.style.cssText = 'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;font-size:13.5px;color:#a0a0b0;line-height:1.8;white-space:pre-wrap;margin-bottom:20px'
+  contenuEl.textContent = s.contenu
+
+  var btnWrap = document.createElement('div')
+  btnWrap.style.cssText = 'display:flex;gap:10px'
+
+  var btnClose = document.createElement('button')
+  btnClose.style.cssText = 'flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#a0a0b0;font-size:13px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnClose.textContent = 'Fermer'
+  btnClose.onclick = function() { overlay.remove() }
+
+  var btnEdit = document.createElement('button')
+  btnEdit.style.cssText = 'flex:1;padding:12px;border-radius:12px;background:var(--violet);border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnEdit.textContent = '✏️ Modifier'
+  btnEdit.onclick = function() { overlay.remove(); openScriptEdit(scriptId) }
+
+  btnWrap.appendChild(btnClose)
+  btnWrap.appendChild(btnEdit)
+  box.appendChild(closeBtn)
+  box.appendChild(titleEl)
+  box.appendChild(metaEl)
+  box.appendChild(contenuEl)
+  box.appendChild(btnWrap)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+  overlay.addEventListener('click', function(e) { if(e.target === overlay) overlay.remove() })
+}
+
+function openScriptForm(scriptId) {
+  var isEdit = !!scriptId
+  var s      = isEdit ? scriptsData.find(function(x) { return x.id === scriptId }) : null
+
+  var overlay = document.createElement('div')
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)'
+
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(123,97,255,.2);border-radius:24px;padding:32px;width:100%;max-width:520px;position:relative'
+
+  var closeBtn = document.createElement('button')
+  closeBtn.style.cssText = 'position:absolute;top:16px;right:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#6b6b80;cursor:pointer;font-size:14px'
+  closeBtn.textContent = '✕'
+  closeBtn.onclick = function() { overlay.remove() }
+
+  var titleEl = document.createElement('h3')
+  titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:20px;color:#fff"
+  titleEl.textContent = isEdit ? 'Modifier le script' : 'Nouveau script'
+
+  // Champ titre
+  var labelTitre = document.createElement('label')
+  labelTitre.style.cssText = 'display:block;font-size:12px;color:#6b6b80;margin-bottom:6px;font-weight:500'
+  labelTitre.textContent = 'Titre du script'
+  var inputTitre = document.createElement('input')
+  inputTitre.type = 'text'
+  inputTitre.placeholder = 'Ex: Présentation produit beauté...'
+  inputTitre.value = s ? s.titre : ''
+  inputTitre.style.cssText = 'width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif;margin-bottom:14px'
+
+  // Champ niche
+  var labelNiche = document.createElement('label')
+  labelNiche.style.cssText = 'display:block;font-size:12px;color:#6b6b80;margin-bottom:6px;font-weight:500'
+  labelNiche.textContent = 'Niche'
+  var selectNiche = document.createElement('select')
+  selectNiche.style.cssText = 'width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif;margin-bottom:14px;cursor:pointer'
+  var nicheOptions = [
+    { value:'', label:'Choisir une niche...' },
+    { value:'mode', label:'Mode & Lifestyle' },
+    { value:'fitness', label:'Fitness & Nutrition' },
+    { value:'tech', label:'Tech & Innovation' },
+    { value:'food', label:'Cuisine & Gastronomie' },
+    { value:'gaming', label:'Gaming & Esport' },
+    { value:'travel', label:'Voyage & Aventure' },
+    { value:'business', label:'Business & Finance' },
+    { value:'beauty', label:'Beauté & Skincare' }
+  ]
+  nicheOptions.forEach(function(opt) {
+    var option = document.createElement('option')
+    option.value = opt.value
+    option.textContent = opt.label
+    option.style.background = '#0d0d1f'
+    if(s && s.niche === opt.value) option.selected = true
+    selectNiche.appendChild(option)
+  })
+
+  // Champ influenceur
+  var labelInf = document.createElement('label')
+  labelInf.style.cssText = 'display:block;font-size:12px;color:#6b6b80;margin-bottom:6px;font-weight:500'
+  labelInf.textContent = 'Influenceur associé (optionnel)'
+  var selectInf = document.createElement('select')
+  selectInf.style.cssText = 'width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif;margin-bottom:14px;cursor:pointer'
+  var optNone = document.createElement('option')
+  optNone.value = ''
+  optNone.textContent = 'Aucun influenceur'
+  optNone.style.background = '#0d0d1f'
+  selectInf.appendChild(optNone)
+  scriptsInfluenceurs.forEach(function(inf) {
+    var option = document.createElement('option')
+    option.value = inf.id
+    option.textContent = inf.nom
+    option.style.background = '#0d0d1f'
+    if(s && s.influenceur_id === inf.id) option.selected = true
+    selectInf.appendChild(option)
+  })
+
+  // Champ contenu
+  var labelContenu = document.createElement('label')
+  labelContenu.style.cssText = 'display:block;font-size:12px;color:#6b6b80;margin-bottom:6px;font-weight:500'
+  labelContenu.textContent = 'Contenu du script'
+  var textareaContenu = document.createElement('textarea')
+  textareaContenu.placeholder = 'Écris ton script ici...'
+  textareaContenu.value = s ? s.contenu : ''
+  textareaContenu.style.cssText = 'width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif;resize:vertical;min-height:140px;line-height:1.6;margin-bottom:20px'
+
+  // Boutons
+  var btnWrap = document.createElement('div')
+  btnWrap.style.cssText = 'display:flex;gap:10px'
+
+  var btnCancel = document.createElement('button')
+  btnCancel.style.cssText = 'flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#a0a0b0;font-size:13px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnCancel.textContent = 'Annuler'
+  btnCancel.onclick = function() { overlay.remove() }
+
+  var btnSave = document.createElement('button')
+  btnSave.style.cssText = 'flex:2;padding:12px;border-radius:12px;background:var(--violet);border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnSave.textContent = isEdit ? '✓ Sauvegarder' : '+ Créer le script'
+  btnSave.onclick = function() {
+    var titre   = inputTitre.value.trim()
+    var contenu = textareaContenu.value.trim()
+    if(!titre)   { inputTitre.style.borderColor = '#ef4444'; return }
+    if(!contenu) { textareaContenu.style.borderColor = '#ef4444'; return }
+    overlay.remove()
+    if(isEdit) saveScriptEdit(scriptId, titre, selectNiche.value, selectInf.value, contenu)
+    else       saveScriptNew(titre, selectNiche.value, selectInf.value, contenu)
+  }
+
+  btnWrap.appendChild(btnCancel)
+  btnWrap.appendChild(btnSave)
+  box.appendChild(closeBtn)
+  box.appendChild(titleEl)
+  box.appendChild(labelTitre)
+  box.appendChild(inputTitre)
+  box.appendChild(labelNiche)
+  box.appendChild(selectNiche)
+  box.appendChild(labelInf)
+  box.appendChild(selectInf)
+  box.appendChild(labelContenu)
+  box.appendChild(textareaContenu)
+  box.appendChild(btnWrap)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+  overlay.addEventListener('click', function(e) { if(e.target === overlay) overlay.remove() })
+}
+
+function openScriptEdit(scriptId) {
+  openScriptForm(scriptId)
+}
+
+async function saveScriptNew(titre, niche, influenceurId, contenu) {
+  if(!currentUser) return
+  const { error } = await zenoDb.from('scripts').insert({
+    user_id:        currentUser.id,
+    influenceur_id: influenceurId || null,
+    titre:          titre,
+    contenu:        contenu,
+    niche:          niche || null
+  })
+  if(error) { alert('Erreur : ' + error.message); return }
+  loadScripts()
+  showScriptSuccessPopup('créé')
+}
+
+async function saveScriptEdit(scriptId, titre, niche, influenceurId, contenu) {
+  if(!currentUser) return
+  const { error } = await zenoDb.from('scripts').update({
+    titre:          titre,
+    contenu:        contenu,
+    niche:          niche || null,
+    influenceur_id: influenceurId || null
+  }).eq('id', scriptId).eq('user_id', currentUser.id)
+  if(error) { alert('Erreur : ' + error.message); return }
+  loadScripts()
+  showScriptSuccessPopup('modifié')
+}
+
+function confirmDeleteScript(scriptId) {
+  var s = scriptsData.find(function(x) { return x.id === scriptId })
+  if(!s) return
+
+  var overlay = document.createElement('div')
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.88);backdrop-filter:blur(6px)'
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(239,68,68,.2);border-radius:24px;padding:36px;width:100%;max-width:380px;text-align:center'
+  var icon = document.createElement('div')
+  icon.style.cssText = 'font-size:44px;margin-bottom:16px'
+  icon.textContent = '🗑'
+  var titleEl = document.createElement('h3')
+  titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:10px;color:#fff"
+  titleEl.textContent = 'Supprimer le script ?'
+  var msgEl = document.createElement('p')
+  msgEl.style.cssText = 'font-size:13px;color:#6b6b80;line-height:1.65;margin-bottom:8px'
+  msgEl.innerHTML = 'Tu es sur le point de supprimer <b style="color:#fff">' + s.titre + '</b>.'
+  var msg2El = document.createElement('p')
+  msg2El.style.cssText = 'font-size:12px;color:#ef4444;margin-bottom:24px;font-weight:600'
+  msg2El.textContent = 'Cette action est irréversible.'
+  var btnWrap = document.createElement('div')
+  btnWrap.style.cssText = 'display:flex;gap:10px'
+  var btnCancel = document.createElement('button')
+  btnCancel.style.cssText = 'flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#a0a0b0;font-size:13px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnCancel.textContent = 'Annuler'
+  btnCancel.onclick = function() { overlay.remove() }
+  var btnConfirm = document.createElement('button')
+  btnConfirm.style.cssText = 'flex:1;padding:12px;border-radius:12px;background:#ef4444;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnConfirm.textContent = 'Oui, supprimer'
+  btnConfirm.onclick = function() { overlay.remove(); deleteScript(scriptId) }
+  btnWrap.appendChild(btnCancel)
+  btnWrap.appendChild(btnConfirm)
+  box.appendChild(icon)
+  box.appendChild(titleEl)
+  box.appendChild(msgEl)
+  box.appendChild(msg2El)
+  box.appendChild(btnWrap)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+}
+
+async function deleteScript(scriptId) {
+  if(!currentUser) return
+  const { error } = await zenoDb.from('scripts').delete().eq('id', scriptId).eq('user_id', currentUser.id)
+  if(error) { alert('Erreur : ' + error.message); return }
+  loadScripts()
+  showScriptSuccessPopup('supprimé')
+}
+
+function showScriptSuccessPopup(action) {
+  var overlay = document.createElement('div')
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.8);backdrop-filter:blur(4px)'
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(29,158,117,.2);border-radius:20px;padding:28px;max-width:340px;text-align:center'
+  var p = document.createElement('p')
+  p.style.cssText = 'font-size:15px;font-weight:700;color:#1D9E75;margin-bottom:6px'
+  p.textContent = '✓ Script ' + action + ' !'
+  var sub = document.createElement('p')
+  sub.style.cssText = 'font-size:12.5px;color:#6b6b80'
+  sub.textContent = 'Ta bibliothèque de scripts a été mise à jour.'
+  box.appendChild(p)
+  box.appendChild(sub)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+  setTimeout(function() { overlay.remove() }, 2000)
+}
+
+function openScriptIA() {
+  var overlay = document.createElement('div')
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)'
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(123,97,255,.2);border-radius:24px;padding:36px;max-width:380px;text-align:center'
+  var icon = document.createElement('div')
+  icon.style.cssText = 'font-size:44px;margin-bottom:16px'
+  icon.textContent = '✨'
+  var titleEl = document.createElement('h3')
+  titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:10px;color:#fff"
+  titleEl.textContent = 'Génération IA — Bientôt disponible'
+  var msgEl = document.createElement('p')
+  msgEl.style.cssText = 'font-size:13px;color:#6b6b80;line-height:1.65;margin-bottom:24px'
+  msgEl.textContent = 'La génération automatique de scripts par IA sera disponible lors de l\'intégration de l\'API DeepSeek.'
+  var btnClose = document.createElement('button')
+  btnClose.style.cssText = 'padding:12px 28px;border-radius:12px;background:var(--violet);border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnClose.textContent = 'Compris'
+  btnClose.onclick = function() { overlay.remove() }
+  box.appendChild(icon)
+  box.appendChild(titleEl)
+  box.appendChild(msgEl)
+  box.appendChild(btnClose)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
 }
 
 </script>
