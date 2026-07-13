@@ -67,6 +67,9 @@
       <div class="sidebar-item" id="nav-planning" onclick="showView('planning')">
         <span class="sidebar-item-icon">📅</span>Planning
       </div>
+      <div class="sidebar-item" id="nav-historique" onclick="showView('historique')">
+        <span class="sidebar-item-icon">📋</span>Historique
+      </div>
       <div class="sidebar-item" id="nav-parametres" onclick="showView('parametres')">
         <span class="sidebar-item-icon">⚙️</span>Paramètres
       </div>
@@ -466,6 +469,65 @@
       </div>
     </div>
 
+    <!-- ═══ VUE HISTORIQUE ═══ -->
+    <div class="view" id="view-historique">
+    
+      <!-- HEADER -->
+      <div class="section-head">
+        <div class="section-head-title">Historique des publications</div>
+        <span id="historiqueCount" style="font-size:12px;color:var(--muted);font-weight:500">0 publication trouvée</span>
+      </div>
+    
+      <!-- FILTRES -->
+      <div class="historique-filters">
+        <select id="filtreReseau" onchange="filtrerHistorique()" class="historique-select">
+          <option value="all">Tous les réseaux</option>
+          <option value="tiktok">TikTok</option>
+          <option value="instagram">Instagram</option>
+          <option value="youtube">YouTube Shorts</option>
+        </select>
+    
+        <select id="filtreInfluenceur" onchange="filtrerHistorique()" class="historique-select">
+          <option value="all">Tous les influenceurs</option>
+        </select>
+    
+        <select id="filtreMois" onchange="filtrerHistorique()" class="historique-select">
+          <option value="all">Tous les mois</option>
+          <option value="1">Janvier</option>
+          <option value="2">Février</option>
+          <option value="3">Mars</option>
+          <option value="4">Avril</option>
+          <option value="5">Mai</option>
+          <option value="6">Juin</option>
+          <option value="7">Juillet</option>
+          <option value="8">Août</option>
+          <option value="9">Septembre</option>
+          <option value="10">Octobre</option>
+          <option value="11">Novembre</option>
+          <option value="12">Décembre</option>
+        </select>
+    
+        <select id="filtreAnnee" onchange="filtrerHistorique()" class="historique-select">
+          <option value="all">Toutes les années</option>
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+          <option value="2027">2027</option>
+        </select>
+    
+        <button onclick="reinitialiserFiltres()" class="historique-reset-btn">↺ Réinitialiser</button>
+      </div>
+    
+      <!-- LISTE -->
+      <div id="historiqueEmpty" style="display:none;text-align:center;padding:60px 20px">
+        <div style="font-size:48px;margin-bottom:16px;opacity:.4">📋</div>
+        <div style="font-size:16px;font-weight:700;color:var(--muted2);margin-bottom:8px">Aucune publication trouvée</div>
+        <div style="font-size:13px;color:var(--muted)">Essaie de modifier les filtres ou génère des vidéos.</div>
+      </div>
+    
+      <div id="historiqueList" style="display:flex;flex-direction:column;gap:10px"></div>
+    
+    </div>
+
     <!-- ═══ VUE PARAMÈTRES ═══ -->
     <div class="view" id="view-parametres">
       <div style="max-width:560px;display:flex;flex-direction:column;gap:16px">
@@ -546,6 +608,9 @@
 <script src="assets/js/videos.js"></script>
 <script src="assets/js/generation.js"></script>
 <script>
+
+
+
 /* ═══ SUPABASE ═══ */
 const SUPABASE_URL = document.querySelector('meta[name="supabase-url"]')?.content
 const SUPABASE_KEY = document.querySelector('meta[name="supabase-key"]')?.content
@@ -736,7 +801,8 @@ var viewTitles = {
   creation:     { title:'Créer un influenceur', sub:'Configure ton nouvel influenceur IA' },
   videos:       { title:'Mes vidéos',           sub:'Toutes les vidéos générées' },
   planning:     { title:'Planning',             sub:'Planifier tes publications' },
-  parametres:   { title:'Paramètres',           sub:'Gérer ton compte' }
+  parametres:  { title:'Paramètres',                sub:'Gérer ton compte' },
+  historique:  { title:'Historique des publications', sub:'Toutes tes publications passées' }
 }
 function showView(id) {
   // Vérifier limite influenceurs avant d'ouvrir la création
@@ -749,8 +815,9 @@ function showView(id) {
   _showView(id)
 }
 function _showView(id) {
-  if(id === 'videos')   { setTimeout(loadVideos, 100); }
-  if(id === 'planning') { setTimeout(loadPlanning, 100); }
+  if(id === 'videos')     { setTimeout(loadVideos, 100); }
+  if(id === 'planning')   { setTimeout(loadPlanning, 100); }
+  if(id === 'historique') { setTimeout(loadHistorique, 100); }
   document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active') })
   document.querySelectorAll('.sidebar-item').forEach(function(i) { i.classList.remove('active') })
   document.getElementById('view-' + id).classList.add('active')
@@ -1139,6 +1206,192 @@ function changePlanningMonth(dir) {
 document.addEventListener('keydown', function(e) {
   if(e.key === 'Enter' && document.getElementById('loginPage').style.display !== 'none') handleLogin()
 })
+
+/* ═══ HISTORIQUE ═══ */
+var historiqueData = []
+var historiqueInfluenceurs = []
+
+async function loadHistorique() {
+  if(!currentUser) return
+
+  // Charger les publications
+  const { data: pubs } = await zenoDb
+    .from('publications')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('date_publication', { ascending: false })
+
+  // Charger les influenceurs pour le filtre
+  const { data: infs } = await zenoDb
+    .from('influenceurs')
+    .select('id,nom')
+    .eq('user_id', currentUser.id)
+
+  historiqueData = pubs || []
+  historiqueInfluenceurs = infs || []
+
+  // Remplir le select influenceurs
+  var selectInf = document.getElementById('filtreInfluenceur')
+  if(selectInf) {
+    selectInf.innerHTML = '<option value="all">Tous les influenceurs</option>'
+    historiqueInfluenceurs.forEach(function(inf) {
+      selectInf.innerHTML += '<option value="' + inf.id + '">' + inf.nom + '</option>'
+    })
+  }
+
+  filtrerHistorique()
+}
+
+function filtrerHistorique() {
+  var reseau      = document.getElementById('filtreReseau')?.value || 'all'
+  var influenceur = document.getElementById('filtreInfluenceur')?.value || 'all'
+  var mois        = document.getElementById('filtreMois')?.value || 'all'
+  var annee       = document.getElementById('filtreAnnee')?.value || 'all'
+
+  var filtered = historiqueData.filter(function(pub) {
+    var date = new Date(pub.date_publication)
+    if(reseau !== 'all' && pub.reseau !== reseau) return false
+    if(influenceur !== 'all' && pub.influenceur_id !== influenceur) return false
+    if(mois !== 'all' && (date.getMonth() + 1) !== parseInt(mois)) return false
+    if(annee !== 'all' && date.getFullYear() !== parseInt(annee)) return false
+    return true
+  })
+
+  renderHistorique(filtered)
+}
+
+function renderHistorique(list) {
+  var empty   = document.getElementById('historiqueEmpty')
+  var listEl  = document.getElementById('historiqueList')
+  var countEl = document.getElementById('historiqueCount')
+
+  var label = list.length === 0 ? '0 publication trouvée' :
+              list.length === 1 ? '1 publication trouvée' :
+              list.length + ' publications trouvées'
+  if(countEl) countEl.textContent = label
+
+  if(!list || list.length === 0) {
+    empty.style.display  = 'block'
+    listEl.style.display = 'none'
+    return
+  }
+
+  empty.style.display  = 'none'
+  listEl.style.display = 'flex'
+
+  var reseauIcons  = { tiktok:'🎵', instagram:'📷', youtube:'▶️' }
+  var reseauColors = { tiktok:'rgba(255,0,80,.1)', instagram:'rgba(225,48,108,.1)', youtube:'rgba(255,0,0,.1)' }
+  var reseauLabels = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
+  var platLabels   = { planifie:'○ Planifiée', publiee:'✓ Publiée', echec:'✗ Échec', en_cours:'⏳ En cours', annule:'Annulée' }
+  var platColors   = { planifie:'var(--violet2)', publiee:'var(--green)', echec:'#ef4444', en_cours:'var(--gold)', annule:'var(--muted)' }
+
+  var html = ''
+  list.forEach(function(pub) {
+    var date     = new Date(pub.date_publication)
+    var dateStr  = date.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
+    var heureStr = date.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' })
+    var inf      = historiqueInfluenceurs.find(function(i) { return i.id === pub.influenceur_id })
+    var infNom   = inf ? inf.nom : 'Influenceur inconnu'
+
+    html +=
+      '<div class="historique-card" onclick="openHistoriqueDetails(\'' + pub.id + '\')">' +
+      '<div class="historique-card-icon" style="background:' + (reseauColors[pub.reseau] || 'rgba(123,97,255,.1)') + '">' +
+      (reseauIcons[pub.reseau] || '📱') +
+      '</div>' +
+      '<div class="historique-card-body">' +
+      '<div class="historique-card-title">' + infNom + ' · ' + (reseauLabels[pub.reseau] || pub.reseau) + '</div>' +
+      '<div class="historique-card-meta">' + dateStr + ' à ' + heureStr + '</div>' +
+      '</div>' +
+      '<div class="historique-card-status" style="color:' + (platColors[pub.statut] || 'var(--muted)') + '">' +
+      (platLabels[pub.statut] || pub.statut) +
+      '</div>' +
+      '</div>'
+  })
+
+  listEl.innerHTML = html
+}
+
+function reinitialiserFiltres() {
+  document.getElementById('filtreReseau').value      = 'all'
+  document.getElementById('filtreInfluenceur').value = 'all'
+  document.getElementById('filtreMois').value        = 'all'
+  document.getElementById('filtreAnnee').value       = 'all'
+  filtrerHistorique()
+}
+
+function openHistoriqueDetails(pubId) {
+  var pub = historiqueData.find(function(p) { return p.id === pubId })
+  if(!pub) return
+
+  var reseauLabels = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
+  var platLabels   = { planifie:'○ Planifiée', publiee:'✓ Publiée', echec:'✗ Échec', en_cours:'⏳ En cours', annule:'Annulée' }
+  var platColors   = { planifie:'var(--violet2)', publiee:'var(--green)', echec:'#ef4444', en_cours:'var(--gold)', annule:'var(--muted)' }
+  var inf          = historiqueInfluenceurs.find(function(i) { return i.id === pub.influenceur_id })
+  var infNom       = inf ? inf.nom : 'Influenceur inconnu'
+  var date         = new Date(pub.date_publication)
+  var dateStr      = date.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
+  var heureStr     = date.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' })
+
+  var existing = document.getElementById('historiqueDetailsPopup')
+  if(existing) existing.remove()
+
+  var overlay = document.createElement('div')
+  overlay.id = 'historiqueDetailsPopup'
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)'
+
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(123,97,255,.2);border-radius:24px;padding:32px;width:100%;max-width:440px;position:relative'
+
+  var closeBtn = document.createElement('button')
+  closeBtn.style.cssText = 'position:absolute;top:16px;right:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#6b6b80;cursor:pointer;font-size:14px'
+  closeBtn.textContent = '✕'
+  closeBtn.onclick = function() { overlay.remove() }
+
+  var titleEl = document.createElement('h3')
+  titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:20px;color:#fff;padding-right:32px"
+  titleEl.textContent = 'Détails de la publication'
+
+  var rows = [
+    { label:'Influenceur', value: infNom },
+    { label:'Réseau',      value: reseauLabels[pub.reseau] || pub.reseau },
+    { label:'Date',        value: dateStr + ' à ' + heureStr },
+    { label:'Statut',      value: platLabels[pub.statut] || pub.statut, color: platColors[pub.statut] }
+  ]
+
+  var infoWrap = document.createElement('div')
+  infoWrap.style.cssText = 'display:flex;flex-direction:column;gap:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;margin-bottom:24px'
+
+  rows.forEach(function(row) {
+    var rowEl = document.createElement('div')
+    rowEl.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:12px'
+    var labelEl = document.createElement('span')
+    labelEl.style.cssText = 'font-size:11px;color:#6b6b80;flex-shrink:0'
+    labelEl.textContent = row.label
+    var valueEl = document.createElement('span')
+    valueEl.style.cssText = 'font-size:12.5px;color:' + (row.color || '#a0a0b0') + ';text-align:right'
+    valueEl.textContent = row.value
+    rowEl.appendChild(labelEl)
+    rowEl.appendChild(valueEl)
+    infoWrap.appendChild(rowEl)
+  })
+
+  var btnClose = document.createElement('button')
+  btnClose.style.cssText = 'width:100%;padding:12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#a0a0b0;font-size:13px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnClose.textContent = 'Fermer'
+  btnClose.onclick = function() { overlay.remove() }
+
+  box.appendChild(closeBtn)
+  box.appendChild(titleEl)
+  box.appendChild(infoWrap)
+  box.appendChild(btnClose)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+
+  overlay.addEventListener('click', function(e) {
+    if(e.target === overlay) overlay.remove()
+  })
+}
+
 </script>
 </body>
 </html>
