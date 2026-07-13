@@ -105,6 +105,10 @@ function buildGenerationHTML(infs) {
     '</div>' +
     '<div class="gen-section-title">Description de la vidéo</div>' +
     '<p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;line-height:1.6">Décris comment ta vidéo doit commencer et se terminer.</p>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+    '<span style="font-size:12.5px;color:var(--muted)">Décris comment ta vidéo doit commencer et se terminer.</span>' +
+    '<button onclick="openScriptSelector()" style="display:flex;align-items:center;gap:6px;background:rgba(123,97,255,.1);border:1px solid rgba(123,97,255,.25);border-radius:8px;padding:6px 12px;color:var(--violet2);font-size:12px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif;transition:all .2s" onmouseover="this.style.background=\'rgba(123,97,255,.2)\'" onmouseout="this.style.background=\'rgba(123,97,255,.1)\'">📝 Utiliser un script</button>' +
+    '</div>' +
     '<textarea id="genDescription" class="gen-textarea" placeholder="Ex: La vidéo commence avec Luna qui salue ses abonnés depuis un café parisien..." oninput="updateDescription(this.value)"></textarea>' +
     '<div id="genDescCount" style="font-size:11px;color:var(--muted);text-align:right;margin-top:6px">0 / 500 caractères</div>' +
     '<div class="gen-actions">' +
@@ -641,4 +645,116 @@ function showPublicationSuccessPopup() {
   box.appendChild(btn)
   overlay.appendChild(box)
   document.body.appendChild(overlay)
+}
+
+/* ─── SÉLECTEUR DE SCRIPT ─── */
+async function openScriptSelector() {
+  var plan = window.currentPlanUser || 'starter'
+
+  // Popup upgrade si Starter
+  if(plan === 'starter') {
+    var overlay = document.createElement('div')
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)'
+    var box = document.createElement('div')
+    box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(123,97,255,.2);border-radius:24px;padding:36px;max-width:380px;text-align:center'
+    var icon = document.createElement('div')
+    icon.style.cssText = 'font-size:44px;margin-bottom:16px'
+    icon.textContent = '🔒'
+    var titleEl = document.createElement('h3')
+    titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:10px;color:#fff"
+    titleEl.textContent = 'Fonctionnalité Nova'
+    var msgEl = document.createElement('p')
+    msgEl.style.cssText = 'font-size:13px;color:#6b6b80;line-height:1.65;margin-bottom:24px'
+    msgEl.innerHTML = 'La bibliothèque de scripts est disponible à partir du plan <b style="color:#a08bff">Nova</b>.<br><br>Passe au plan Nova pour réutiliser tes scripts.'
+    var btnWrap = document.createElement('div')
+    btnWrap.style.cssText = 'display:flex;gap:10px;justify-content:center'
+    var btnCancel = document.createElement('button')
+    btnCancel.style.cssText = 'flex:1;padding:11px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#a0a0b0;font-size:13px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+    btnCancel.textContent = 'Fermer'
+    btnCancel.onclick = function() { overlay.remove() }
+    var btnUpgrade = document.createElement('button')
+    btnUpgrade.style.cssText = 'flex:1;padding:11px;border-radius:12px;background:var(--violet);border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+    btnUpgrade.textContent = 'Voir les plans'
+    btnUpgrade.onclick = function() { overlay.remove(); window.location.href='index.html#tarifs' }
+    btnWrap.appendChild(btnCancel)
+    btnWrap.appendChild(btnUpgrade)
+    box.appendChild(icon)
+    box.appendChild(titleEl)
+    box.appendChild(msgEl)
+    box.appendChild(btnWrap)
+    overlay.appendChild(box)
+    document.body.appendChild(overlay)
+    return
+  }
+
+  // Charger les scripts
+  const { data: scripts } = await zenoDb
+    .from('scripts')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false })
+
+  var overlay = document.createElement('div')
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)'
+
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(123,97,255,.2);border-radius:24px;padding:32px;width:100%;max-width:500px;position:relative;max-height:80vh;display:flex;flex-direction:column'
+
+  var closeBtn = document.createElement('button')
+  closeBtn.style.cssText = 'position:absolute;top:16px;right:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#6b6b80;cursor:pointer;font-size:14px'
+  closeBtn.textContent = '✕'
+  closeBtn.onclick = function() { overlay.remove() }
+
+  var titleEl = document.createElement('h3')
+  titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:6px;color:#fff"
+  titleEl.textContent = 'Choisir un script'
+
+  var subEl = document.createElement('p')
+  subEl.style.cssText = 'font-size:12.5px;color:#6b6b80;margin-bottom:20px'
+  subEl.textContent = 'Sélectionne un script pour l\'insérer dans la description.'
+
+  var listWrap = document.createElement('div')
+  listWrap.style.cssText = 'overflow-y:auto;display:flex;flex-direction:column;gap:10px;flex:1'
+
+  if(!scripts || scripts.length === 0) {
+    var emptyEl = document.createElement('div')
+    emptyEl.style.cssText = 'text-align:center;padding:40px 20px'
+    emptyEl.innerHTML = '<div style="font-size:36px;margin-bottom:12px;opacity:.4">📝</div><div style="font-size:14px;color:#6b6b80">Aucun script dans ta bibliothèque.<br>Crée-en un depuis l\'onglet Scripts.</div>'
+    listWrap.appendChild(emptyEl)
+  } else {
+    scripts.forEach(function(s) {
+      var card = document.createElement('div')
+      card.style.cssText = 'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .2s'
+      card.onmouseover = function() { this.style.borderColor='rgba(123,97,255,.4)'; this.style.background='rgba(123,97,255,.06)' }
+      card.onmouseout  = function() { this.style.borderColor='rgba(255,255,255,.07)'; this.style.background='rgba(255,255,255,.03)' }
+
+      var cardTitle = document.createElement('div')
+      cardTitle.style.cssText = 'font-size:13px;font-weight:700;color:#fff;margin-bottom:6px'
+      cardTitle.textContent = s.titre
+
+      var cardPreview = document.createElement('div')
+      cardPreview.style.cssText = 'font-size:12px;color:#6b6b80;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden'
+      cardPreview.textContent = s.contenu
+
+      card.appendChild(cardTitle)
+      card.appendChild(cardPreview)
+      card.onclick = function() {
+        var textarea = document.getElementById('genDescription')
+        if(textarea) {
+          textarea.value = s.contenu
+          updateDescription(s.contenu)
+        }
+        overlay.remove()
+      }
+      listWrap.appendChild(card)
+    })
+  }
+
+  box.appendChild(closeBtn)
+  box.appendChild(titleEl)
+  box.appendChild(subEl)
+  box.appendChild(listWrap)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+  overlay.addEventListener('click', function(e) { if(e.target === overlay) overlay.remove() })
 }
