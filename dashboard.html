@@ -134,117 +134,37 @@
         </div>
       </div>
     
-      <!-- ═══ ANALYTICS ═══ -->
-      <div id="analyticsWrap" style="margin-bottom:36px">
-    
-        <!-- HEADER ANALYTICS -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-          <div>
-            <div style="font-size:16px;font-weight:700;color:var(--white)">Analytics</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:3px">Vue d'ensemble de tes performances</div>
-          </div>
-
-          <!-- SWITCH RÉSEAUX -->
-          <div class="analytics-network-switch">
-            <button class="analytics-net-btn active" id="netBtn-tiktok" onclick="switchAnalyticsNetwork('tiktok')">
-              <span style="font-size:14px">🎵</span>TikTok
-            </button>
-            <div class="analytics-net-sep"></div>
-            <button class="analytics-net-btn" id="netBtn-instagram" onclick="switchAnalyticsNetwork('instagram')">
-              <span style="font-size:14px">📷</span>Instagram
-            </button>
-            <div class="analytics-net-sep"></div>
-            <button class="analytics-net-btn" id="netBtn-youtube" onclick="switchAnalyticsNetwork('youtube')">
-              <span style="font-size:14px">▶️</span>YouTube Shorts
-            </button>
-          </div>
-        </div>
-    
-        <!-- UPGRADE BANNER (Starter) -->
-        <div id="analyticsUpgradeBanner"
-          style="display:none;background:var(--bg2);border:1px solid rgba(123,97,255,.2);border-radius:var(--r-xl);padding:48px;text-align:center">
-          <div style="font-size:48px;margin-bottom:16px">📊</div>
-          <h3 style="font-size:18px;font-weight:800;margin-bottom:10px;color:var(--white)">Analytics disponible sur Nova
-          </h3>
-          <p style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6">Passe au plan <span
-              style="color:var(--violet2);font-weight:700">Nova</span> pour accéder aux statistiques de tes réseaux sociaux
-            en temps réel.</p>
-          <button onclick="window.location.href='index.html#tarifs'" class="btn-sm btn-violet"
-            style="padding:12px 28px;font-size:14px">Passer à Nova →</button>
-        </div>
-    
-        <!-- ANALYTICS CONTENT (Nova+) -->
-        <div id="analyticsContent">
-    
-          <!-- 3 KPI -->
-          <div class="analytics-kpi-row">
-            <div class="analytics-kpi-card">
-              <div class="analytics-kpi-label">Abonnés totaux</div>
-              <div class="analytics-kpi-val" id="kpiAbonnes">—</div>
-              <div class="analytics-kpi-delta" id="kpiAbonnesDelta">—</div>
-            </div>
-            <div class="analytics-kpi-card">
-              <div class="analytics-kpi-label">Likes totaux</div>
-              <div class="analytics-kpi-val" id="kpiLikes">—</div>
-              <div class="analytics-kpi-delta" id="kpiLikesDelta">—</div>
-            </div>
-            <div class="analytics-kpi-card">
-              <div class="analytics-kpi-label">Partages totaux</div>
-              <div class="analytics-kpi-val" id="kpiPartages">—</div>
-              <div class="analytics-kpi-delta" id="kpiPartagesDelta">—</div>
-            </div>
-          </div>
-    
-          <!-- GRAPHIQUE + RÉSUMÉ -->
-          <div class="analytics-main-grid">
-    
-            <!-- GRAPHIQUE -->
-            <div class="analytics-chart-wrap">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                <div style="font-size:13px;font-weight:700;color:var(--white)" id="chartTitle">Évolution des abonnés</div>
-              </div>
-              <div style="position:relative;height:240px">
-                <canvas id="analyticsChart"></canvas>
-              </div>
-            </div>
-    
-            <!-- RÉSUMÉ -->
-            <div class="analytics-summary-wrap">
-    
-              <!-- FILTRES PÉRIODE -->
-              <div class="analytics-period-filters">
-                <button class="analytics-period-btn active" id="periodBtn-7" onclick="switchPeriod(7)">7 jours</button>
-                <button class="analytics-period-btn" id="periodBtn-30" onclick="switchPeriod(30)">Ce mois</button>
-                <button class="analytics-period-btn" id="periodBtn-365" onclick="switchPeriod(365)">Cette année</button>
-              </div>
-    
-              <!-- MÉTRIQUES CLIQUABLES -->
-              <div class="analytics-metric-card active" id="metricCard-abonnes" onclick="switchMetric('abonnes')">
-                <div class="analytics-metric-label">Abonnés gagnés</div>
-                <div class="analytics-metric-val" id="summaryAbonnes">—</div>
-              </div>
-              <div class="analytics-metric-card" id="metricCard-likes" onclick="switchMetric('likes')">
-                <div class="analytics-metric-label">Likes gagnés</div>
-                <div class="analytics-metric-val" id="summaryLikes">—</div>
-              </div>
-              <div class="analytics-metric-card" id="metricCard-partages" onclick="switchMetric('partages')">
-                <div class="analytics-metric-label">Partages</div>
-                <div class="analytics-metric-val" id="summaryPartages">—</div>
-              </div>
-    
-              <!-- BOUTON MESSAGES -->
-              <div style="position:relative;margin-top:16px">
-                <button class="analytics-messages-btn" onclick="openMessagesView()">
-                  💬 Voir les messages de mes abonnés
-                </button>
-                <div class="analytics-notif-badge" id="analyticsBadge">0</div>
-              </div>
-    
-            </div>
-          </div>
-        </div>
+      </div>
       </div>
     </div>
+
+    <!-- MES INFLUENCEURS -->
+    <div class="section-head">
+      <div class="section-head-title">Mes influenceurs</div>
+      <button class="btn-sm btn-outline-sm" onclick="showView('influenceurs')">Voir tout</button>
+    </div>
+    <div class="inf-grid" id="homeInfGrid">
+      <div class="inf-card inf-card-add" onclick="showView('creation')">
+        <div class="inf-card-add-icon">+</div>
+        <div class="inf-card-add-text">Créer mon premier influenceur</div>
+      </div>
+    </div>
+
+    <!-- VIDÉOS RÉCENTES -->
+    <div class="section-head">
+      <div class="section-head-title">Vidéos récentes</div>
+      <button class="btn-sm btn-outline-sm" onclick="showView('videos')">Voir tout</button>
+    </div>
+    <div id="homeVideosWrap">
+      <div class="empty-state">
+        <div class="empty-icon">🎬</div>
+        <div class="empty-title">Aucune vidéo pour l'instant</div>
+        <div class="empty-sub">Crée ton premier influenceur pour commencer à générer des vidéos.</div>
+      </div>
+    </div>
+
+  </div>
+  <!-- FIN VUE ACCUEIL -->
 
       <!-- ═══ VUE MESSAGES (cachée) ═══ -->
       <div class="view" id="view-messages">
