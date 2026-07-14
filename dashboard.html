@@ -109,6 +109,8 @@
 
     <!-- ═══ VUE ACCUEIL ═══ -->
     <div class="view active" id="view-home">
+    
+      <!-- STATS GRID -->
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-card-label">Influenceurs</div>
@@ -131,7 +133,156 @@
           <div class="stat-card-delta" id="stat-reseau-limit">/ 1 max</div>
         </div>
       </div>
+    
+      <!-- ═══ ANALYTICS ═══ -->
+      <div id="analyticsWrap" style="margin-bottom:36px">
+    
+        <!-- HEADER ANALYTICS -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div>
+            <div style="font-size:16px;font-weight:700;color:var(--white)">Analytics</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px">Vue d'ensemble de tes performances</div>
+          </div>
+          <!-- SWITCH RÉSEAUX -->
+          <div class="analytics-network-switch">
+            <button class="analytics-net-btn active" id="netBtn-tiktok" onclick="switchAnalyticsNetwork('tiktok')">
+              <span style="font-size:14px">🎵</span>TikTok
+            </button>
+            <div class="analytics-net-sep"></div>
+            <button class="analytics-net-btn" id="netBtn-instagram" onclick="switchAnalyticsNetwork('instagram')">
+              <span style="font-size:14px">📷</span>Instagram
+            </button>
+            <div class="analytics-net-sep"></div>
+            <button class="analytics-net-btn" id="netBtn-youtube" onclick="switchAnalyticsNetwork('youtube')">
+              <span style="font-size:14px">▶️</span>YouTube Shorts
+            </button>
+          </div>
+        </div>
+    
+        <!-- UPGRADE BANNER (Starter) -->
+        <div id="analyticsUpgradeBanner"
+          style="display:none;background:var(--bg2);border:1px solid rgba(123,97,255,.2);border-radius:var(--r-xl);padding:48px;text-align:center">
+          <div style="font-size:48px;margin-bottom:16px">📊</div>
+          <h3 style="font-size:18px;font-weight:800;margin-bottom:10px;color:var(--white)">Analytics disponible sur Nova
+          </h3>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6">Passe au plan <span
+              style="color:var(--violet2);font-weight:700">Nova</span> pour accéder aux statistiques de tes réseaux sociaux
+            en temps réel.</p>
+          <button onclick="window.location.href='index.html#tarifs'" class="btn-sm btn-violet"
+            style="padding:12px 28px;font-size:14px">Passer à Nova →</button>
+        </div>
+    
+        <!-- ANALYTICS CONTENT (Nova+) -->
+        <div id="analyticsContent">
+    
+          <!-- 3 KPI -->
+          <div class="analytics-kpi-row">
+            <div class="analytics-kpi-card">
+              <div class="analytics-kpi-label">Abonnés totaux</div>
+              <div class="analytics-kpi-val" id="kpiAbonnes">—</div>
+              <div class="analytics-kpi-delta" id="kpiAbonnesDelta">—</div>
+            </div>
+            <div class="analytics-kpi-card">
+              <div class="analytics-kpi-label">Likes totaux</div>
+              <div class="analytics-kpi-val" id="kpiLikes">—</div>
+              <div class="analytics-kpi-delta" id="kpiLikesDelta">—</div>
+            </div>
+            <div class="analytics-kpi-card">
+              <div class="analytics-kpi-label">Partages totaux</div>
+              <div class="analytics-kpi-val" id="kpiPartages">—</div>
+              <div class="analytics-kpi-delta" id="kpiPartagesDelta">—</div>
+            </div>
+          </div>
+    
+          <!-- GRAPHIQUE + RÉSUMÉ -->
+          <div class="analytics-main-grid">
+    
+            <!-- GRAPHIQUE -->
+            <div class="analytics-chart-wrap">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                <div style="font-size:13px;font-weight:700;color:var(--white)" id="chartTitle">Évolution des abonnés</div>
+              </div>
+              <div style="position:relative;height:240px">
+                <canvas id="analyticsChart"></canvas>
+              </div>
+            </div>
+    
+            <!-- RÉSUMÉ -->
+            <div class="analytics-summary-wrap">
+    
+              <!-- FILTRES PÉRIODE -->
+              <div class="analytics-period-filters">
+                <button class="analytics-period-btn active" id="periodBtn-7" onclick="switchPeriod(7)">7 jours</button>
+                <button class="analytics-period-btn" id="periodBtn-30" onclick="switchPeriod(30)">Ce mois</button>
+                <button class="analytics-period-btn" id="periodBtn-365" onclick="switchPeriod(365)">Cette année</button>
+              </div>
+    
+              <!-- MÉTRIQUES CLIQUABLES -->
+              <div class="analytics-metric-card active" id="metricCard-abonnes" onclick="switchMetric('abonnes')">
+                <div class="analytics-metric-label">Abonnés gagnés</div>
+                <div class="analytics-metric-val" id="summaryAbonnes">—</div>
+              </div>
+              <div class="analytics-metric-card" id="metricCard-likes" onclick="switchMetric('likes')">
+                <div class="analytics-metric-label">Likes gagnés</div>
+                <div class="analytics-metric-val" id="summaryLikes">—</div>
+              </div>
+              <div class="analytics-metric-card" id="metricCard-partages" onclick="switchMetric('partages')">
+                <div class="analytics-metric-label">Partages</div>
+                <div class="analytics-metric-val" id="summaryPartages">—</div>
+              </div>
+    
+              <!-- BOUTON MESSAGES -->
+              <div style="position:relative;margin-top:16px">
+                <button class="analytics-messages-btn" onclick="openMessagesView()">
+                  💬 Voir les messages de mes abonnés
+                </button>
+                <div class="analytics-notif-badge" id="analyticsBadge">0</div>
+              </div>
+    
+            </div>
+          </div>
+        </div>
+      </div>
 
+      <!-- ═══ VUE MESSAGES (cachée) ═══ -->
+      <div class="view" id="view-messages">
+      
+        <!-- HEADER -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
+          <button onclick="closeMessagesView()" class="gen-back-btn">← Retour</button>
+          <div>
+            <div style="font-size:20px;font-weight:800;color:var(--white)">Messages de mes abonnés</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px">Lecture uniquement — réponses disponibles après
+              intégration API</div>
+          </div>
+        </div>
+      
+        <!-- FILTRES -->
+        <div class="historique-filters" style="margin-bottom:20px">
+          <button class="analytics-net-btn active" id="msgNetBtn-all" onclick="switchMessagesNetwork('all')">Tous</button>
+          <button class="analytics-net-btn" id="msgNetBtn-tiktok" onclick="switchMessagesNetwork('tiktok')">🎵 TikTok</button>
+          <button class="analytics-net-btn" id="msgNetBtn-instagram" onclick="switchMessagesNetwork('instagram')">📷
+            Instagram</button>
+          <button class="analytics-net-btn" id="msgNetBtn-youtube" onclick="switchMessagesNetwork('youtube')">▶️ YouTube
+            Shorts</button>
+          <div style="width:1px;background:var(--border2);margin:0 4px"></div>
+          <button class="analytics-period-btn active" id="msgPeriodBtn-7" onclick="switchMessagesPeriod(7)">7 jours</button>
+          <button class="analytics-period-btn" id="msgPeriodBtn-30" onclick="switchMessagesPeriod(30)">Ce mois</button>
+          <button class="analytics-period-btn" id="msgPeriodBtn-365" onclick="switchMessagesPeriod(365)">Cette année</button>
+          <span id="messagesCount" style="font-size:12px;color:var(--muted);margin-left:auto">0 message</span>
+        </div>
+      
+        <!-- LISTE MESSAGES -->
+        <div id="messagesEmpty" style="display:none;text-align:center;padding:60px 20px">
+          <div style="font-size:48px;margin-bottom:16px;opacity:.4">💬</div>
+          <div style="font-size:16px;font-weight:700;color:var(--muted2);margin-bottom:8px">Aucun message trouvé</div>
+          <div style="font-size:13px;color:var(--muted)">Modifie les filtres ou attends que tes abonnés t'écrivent.</div>
+        </div>
+        <div id="messagesList" style="display:flex;flex-direction:column;gap:10px"></div>
+      
+      </div>
+    
+      <!-- VUE INFLUENCEURS -->
       <div class="section-head">
         <div class="section-head-title">Mes influenceurs</div>
         <button class="btn-sm btn-outline-sm" onclick="showView('influenceurs')">Voir tout</button>
@@ -142,7 +293,8 @@
           <div class="inf-card-add-text">Créer mon premier influenceur</div>
         </div>
       </div>
-
+    
+      <!-- VIDÉOS RÉCENTES -->
       <div class="section-head">
         <div class="section-head-title">Vidéos récentes</div>
         <button class="btn-sm btn-outline-sm" onclick="showView('videos')">Voir tout</button>
@@ -154,53 +306,8 @@
           <div class="empty-sub">Crée ton premier influenceur pour commencer à générer des vidéos.</div>
         </div>
       </div>
+    
     </div>
-
-    <!-- ═══ VUE INFLUENCEURS ═══ -->
-    <div class="view" id="view-influenceurs">
-      <div class="section-head">
-        <div class="section-head-title">Tous mes influenceurs</div>
-        <button class="btn-sm btn-violet" onclick="showView('creation')">+ Nouveau</button>
-      </div>
-      <div class="inf-grid" id="allInfGrid">
-        <div class="inf-card inf-card-add" onclick="showView('creation')">
-          <div class="inf-card-add-icon">+</div>
-          <div class="inf-card-add-text">Créer un influenceur</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ VUE CRÉATION ═══ -->
-    <div class="view" id="view-creation">
-      <div class="creation-wrap">
-
-        <!-- Stepper -->
-        <div class="creation-steps" id="creationStepper">
-          <div class="creation-step">
-            <div class="creation-step-circle csc-active" id="csc1">1</div>
-            <div class="creation-step-label active-lbl" id="csl1">Identité</div>
-          </div>
-          <div class="creation-step-line" id="cline1"></div>
-          <div class="creation-step">
-            <div class="creation-step-circle csc-pending" id="csc2">2</div>
-            <div class="creation-step-label" id="csl2">Personnalité</div>
-          </div>
-          <div class="creation-step-line" id="cline2"></div>
-          <div class="creation-step">
-            <div class="creation-step-circle csc-pending" id="csc3">3</div>
-            <div class="creation-step-label" id="csl3">Visage</div>
-          </div>
-          <div class="creation-step-line" id="cline3"></div>
-          <div class="creation-step">
-            <div class="creation-step-circle csc-pending" id="csc4">4</div>
-            <div class="creation-step-label" id="csl4">Voix</div>
-          </div>
-          <div class="creation-step-line" id="cline4"></div>
-          <div class="creation-step">
-            <div class="creation-step-circle csc-pending" id="csc5">5</div>
-            <div class="creation-step-label" id="csl5">Réseau</div>
-          </div>
-        </div>
 
         <!-- ÉTAPE 1 — Identité -->
         <div class="creation-form-box" id="cstep1">
@@ -666,6 +773,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="assets/js/videos.js"></script>
 <script src="assets/js/generation.js"></script>
 <script>
@@ -770,6 +878,7 @@ async function loadUserData() {
     applyPlanRestrictions(plan)
   }
   loadInfluenceurs()
+  initAnalytics()
 }
 
 /* ═══ RESTRICTIONS PAR PLAN ═══ */
@@ -834,6 +943,7 @@ async function loadInfluenceurs() {
     document.getElementById('stat-inf').textContent = data.length
     renderInfluenceurs(data)
   }
+
 }
 
 function renderInfluenceurs(list) {
@@ -864,6 +974,7 @@ var viewTitles = {
   planning:     { title:'Planning',             sub:'Planifier tes publications' },
   parametres:  { title:'Paramètres',                sub:'Gérer ton compte' },
   historique: { title:'Historique des publications', sub:'Toutes tes publications passées' },
+  messages: { title:'Messages', sub:'Messages de tes abonnés' },
   scripts:    { title:'Bibliothèque de scripts',     sub:'Crée et réutilise tes meilleurs scripts' }
 }
 function showView(id) {
@@ -1901,6 +2012,327 @@ function openScriptIA() {
   box.appendChild(btnClose)
   overlay.appendChild(box)
   document.body.appendChild(overlay)
+}
+
+/* ═══ ANALYTICS ═══ */
+var analyticsState = {
+  network: 'tiktok',
+  period: 7,
+  metric: 'abonnes'
+}
+var analyticsChart = null
+
+// Données simulées réalistes
+var analyticsData = {
+  tiktok: {
+    abonnes_total: 45200,
+    likes_total: 128400,
+    partages_total: 23100,
+    messages_non_lus: 8,
+    evolution: generateEvolutionData(45200, 128400, 23100)
+  },
+  instagram: {
+    abonnes_total: 32800,
+    likes_total: 89600,
+    partages_total: 14200,
+    messages_non_lus: 3,
+    evolution: generateEvolutionData(32800, 89600, 14200)
+  },
+  youtube: {
+    abonnes_total: 18500,
+    likes_total: 54300,
+    partages_total: 8900,
+    messages_non_lus: 5,
+    evolution: generateEvolutionData(18500, 54300, 8900)
+  }
+}
+
+// Messages simulés
+var messagesData = generateMessagesData()
+
+var analyticsMessagesState = {
+  network: 'all',
+  period: 7
+}
+
+function generateEvolutionData(totalAbo, totalLikes, totalPartages) {
+  var days = 365
+  var abo = [], likes = [], partages = []
+  for(var i = 0; i < days; i++) {
+    abo.push(Math.floor(Math.random() * 80) + 20)
+    likes.push(Math.floor(Math.random() * 400) + 100)
+    partages.push(Math.floor(Math.random() * 80) + 10)
+  }
+  return { abonnes: abo, likes: likes, partages: partages }
+}
+
+function generateMessagesData() {
+  var reseaux  = ['tiktok', 'instagram', 'youtube']
+  var prenoms  = ['Sophie', 'Lucas', 'Emma', 'Noah', 'Léa', 'Hugo', 'Chloé', 'Théo', 'Camille', 'Maxime', 'Inès', 'Antoine']
+  var messages = [
+    'Ta vidéo m\'a trop aidé merci !',
+    'Continue comme ça tu es au top 🔥',
+    'Quand est-ce que tu postes la suite ?',
+    'J\'adore ton contenu depuis le début',
+    'Tu peux faire une vidéo sur ce sujet ?',
+    'Incroyable ce que tu fais, bravo !',
+    'Je partage tes vidéos à tout le monde',
+    'Tu m\'as donné envie de me lancer aussi',
+    'La qualité de tes vidéos est dingue',
+    'Abonné depuis le jour 1 ❤️'
+  ]
+  var result = []
+  var now = new Date()
+  for(var i = 0; i < 24; i++) {
+    var daysAgo = Math.floor(Math.random() * 365)
+    var date    = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000)
+    result.push({
+      id:      i,
+      prenom:  prenoms[Math.floor(Math.random() * prenoms.length)],
+      message: messages[Math.floor(Math.random() * messages.length)],
+      reseau:  reseaux[Math.floor(Math.random() * reseaux.length)],
+      date:    date,
+      lu:      Math.random() > 0.4
+    })
+  }
+  return result.sort(function(a, b) { return b.date - a.date })
+}
+
+function formatNumber(n) {
+  if(n >= 1000000) return (n / 1000000).toFixed(1) + 'M'
+  if(n >= 1000)    return (n / 1000).toFixed(1) + 'K'
+  return n.toString()
+}
+
+function initAnalytics() {
+  var plan = window.currentPlanUser || 'starter'
+  var upgradeBanner  = document.getElementById('analyticsUpgradeBanner')
+  var analyticsContent = document.getElementById('analyticsContent')
+
+  if(plan === 'starter') {
+    if(upgradeBanner)    upgradeBanner.style.display    = 'block'
+    if(analyticsContent) analyticsContent.style.display = 'none'
+    return
+  }
+
+  if(upgradeBanner)    upgradeBanner.style.display    = 'none'
+  if(analyticsContent) analyticsContent.style.display = 'block'
+
+  renderAnalytics()
+}
+
+function renderAnalytics() {
+  var net    = analyticsState.network
+  var period = analyticsState.period
+  var metric = analyticsState.metric
+  var d      = analyticsData[net]
+
+  // KPI
+  document.getElementById('kpiAbonnes').textContent       = formatNumber(d.abonnes_total)
+  document.getElementById('kpiLikes').textContent         = formatNumber(d.likes_total)
+  document.getElementById('kpiPartages').textContent      = formatNumber(d.partages_total)
+  document.getElementById('kpiAbonnesDelta').textContent  = '+' + formatNumber(d.evolution.abonnes.slice(-30).reduce(function(a,b){return a+b},0)) + ' ce mois'
+  document.getElementById('kpiLikesDelta').textContent    = '+' + formatNumber(d.evolution.likes.slice(-30).reduce(function(a,b){return a+b},0)) + ' ce mois'
+  document.getElementById('kpiPartagesDelta').textContent = '+' + formatNumber(d.evolution.partages.slice(-30).reduce(function(a,b){return a+b},0)) + ' ce mois'
+
+  // Résumé
+  var evoSlice = d.evolution[metric === 'abonnes' ? 'abonnes' : metric].slice(-period)
+  var total    = evoSlice.reduce(function(a,b){return a+b},0)
+  document.getElementById('summaryAbonnes').textContent  = '+' + formatNumber(d.evolution.abonnes.slice(-period).reduce(function(a,b){return a+b},0))
+  document.getElementById('summaryLikes').textContent    = '+' + formatNumber(d.evolution.likes.slice(-period).reduce(function(a,b){return a+b},0))
+  document.getElementById('summaryPartages').textContent = '+' + formatNumber(d.evolution.partages.slice(-period).reduce(function(a,b){return a+b},0))
+
+  // Badge messages
+  var badge = document.getElementById('analyticsBadge')
+  if(badge) badge.textContent = d.messages_non_lus
+
+  // Titre graphique
+  var titles = { abonnes:'Évolution des abonnés', likes:'Évolution des likes', partages:'Évolution des partages' }
+  var titleEl = document.getElementById('chartTitle')
+  if(titleEl) titleEl.textContent = titles[metric]
+
+  // Graphique
+  renderChart(d.evolution[metric === 'abonnes' ? 'abonnes' : metric].slice(-period), period)
+}
+
+function renderChart(data, period) {
+  var ctx = document.getElementById('analyticsChart')
+  if(!ctx) return
+
+  // Labels
+  var labels = []
+  var now    = new Date()
+  for(var i = period - 1; i >= 0; i--) {
+    var d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
+    if(period <= 7) {
+      labels.push(d.toLocaleDateString('fr-FR', { weekday:'short', day:'numeric' }))
+    } else if(period <= 30) {
+      labels.push(d.toLocaleDateString('fr-FR', { day:'numeric', month:'short' }))
+    } else {
+      labels.push(d.toLocaleDateString('fr-FR', { month:'short' }))
+    }
+  }
+
+  // Couleur selon réseau
+  var colors = { tiktok:'#ff0050', instagram:'#e1306c', youtube:'#ff0000' }
+  var color  = colors[analyticsState.network] || '#7b61ff'
+
+  if(analyticsChart) {
+    analyticsChart.destroy()
+    analyticsChart = null
+  }
+
+  analyticsChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        borderColor: color,
+        backgroundColor: color.replace(')', ', 0.08)').replace('rgb', 'rgba'),
+        borderWidth: 2,
+        pointRadius: period <= 7 ? 4 : 0,
+        pointHoverRadius: 6,
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0d0d1f',
+          borderColor: 'rgba(123,97,255,.3)',
+          borderWidth: 1,
+          titleColor: '#a0a0b0',
+          bodyColor: '#ffffff',
+          bodyFont: { weight: 'bold', size: 14 }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,.04)' },
+          ticks: {
+            color: '#6b6b80',
+            font: { size: 10 },
+            maxTicksLimit: period <= 7 ? 7 : period <= 30 ? 10 : 12
+          }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,.04)' },
+          ticks: {
+            color: '#6b6b80',
+            font: { size: 10 },
+            callback: function(val) { return formatNumber(val) }
+          }
+        }
+      }
+    }
+  })
+}
+
+function switchAnalyticsNetwork(network) {
+  analyticsState.network = network
+  document.querySelectorAll('.analytics-net-btn[id^="netBtn-"]').forEach(function(b) { b.classList.remove('active') })
+  var btn = document.getElementById('netBtn-' + network)
+  if(btn) btn.classList.add('active')
+  renderAnalytics()
+}
+
+function switchPeriod(period) {
+  analyticsState.period = period
+  document.querySelectorAll('.analytics-period-btn').forEach(function(b) { b.classList.remove('active') })
+  var btn = document.getElementById('periodBtn-' + period)
+  if(btn) btn.classList.add('active')
+  renderAnalytics()
+}
+
+function switchMetric(metric) {
+  analyticsState.metric = metric
+  document.querySelectorAll('.analytics-metric-card').forEach(function(c) { c.classList.remove('active') })
+  var card = document.getElementById('metricCard-' + metric)
+  if(card) card.classList.add('active')
+  renderAnalytics()
+}
+
+/* ═══ VUE MESSAGES ═══ */
+function openMessagesView() {
+  _showView('messages')
+  renderMessages()
+}
+
+function closeMessagesView() {
+  _showView('home')
+}
+
+function switchMessagesNetwork(network) {
+  analyticsMessagesState.network = network
+  document.querySelectorAll('[id^="msgNetBtn-"]').forEach(function(b) { b.classList.remove('active') })
+  var btn = document.getElementById('msgNetBtn-' + network)
+  if(btn) btn.classList.add('active')
+  renderMessages()
+}
+
+function switchMessagesPeriod(period) {
+  analyticsMessagesState.period = period
+  document.querySelectorAll('[id^="msgPeriodBtn-"]').forEach(function(b) { b.classList.remove('active') })
+  var btn = document.getElementById('msgPeriodBtn-' + period)
+  if(btn) btn.classList.add('active')
+  renderMessages()
+}
+
+function renderMessages() {
+  var network  = analyticsMessagesState.network
+  var period   = analyticsMessagesState.period
+  var now      = new Date()
+  var cutoff   = new Date(now.getTime() - period * 24 * 60 * 60 * 1000)
+
+  var filtered = messagesData.filter(function(m) {
+    if(network !== 'all' && m.reseau !== network) return false
+    if(m.date < cutoff) return false
+    return true
+  })
+
+  var empty    = document.getElementById('messagesEmpty')
+  var list     = document.getElementById('messagesList')
+  var countEl  = document.getElementById('messagesCount')
+
+  var label = filtered.length === 0 ? '0 message' :
+              filtered.length === 1 ? '1 message'  :
+              filtered.length + ' messages'
+  if(countEl) countEl.textContent = label
+
+  if(!filtered || filtered.length === 0) {
+    if(empty) empty.style.display = 'block'
+    if(list)  list.style.display  = 'none'
+    return
+  }
+
+  if(empty) empty.style.display = 'none'
+  if(list)  list.style.display  = 'flex'
+
+  var reseauLabels = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
+
+  var html = ''
+  filtered.forEach(function(m) {
+    var dateStr  = m.date.toLocaleDateString('fr-FR', { day:'numeric', month:'long' })
+    var initiale = m.prenom.charAt(0).toUpperCase()
+    html +=
+      '<div class="message-card">' +
+      '<div class="message-avatar">' + initiale + '</div>' +
+      '<div class="message-body">' +
+      '<div class="message-header">' +
+      '<div class="message-name">' + m.prenom + '</div>' +
+      '<div class="message-date">' + dateStr + '</div>' +
+      '</div>' +
+      '<div class="message-text">' + m.message + '</div>' +
+      '<span class="message-network message-network-' + m.reseau + '">' + (reseauLabels[m.reseau] || m.reseau) + '</span>' +
+      '</div>' +
+      '</div>'
+  })
+  list.innerHTML = html
 }
 
 </script>
