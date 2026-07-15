@@ -296,11 +296,11 @@
         </div>
         <div id="messagesList" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
+
     <!-- ═══ VUE INFLUENCEURS ═══ -->
     <div class="view" id="view-influenceurs">
       <div class="section-head">
         <div class="section-head-title">Tous mes influenceurs</div>
-        <button class="btn-sm btn-violet" onclick="showView('creation')">+ Créer</button>
       </div>
       <div class="inf-grid" id="allInfGrid">
         <div class="inf-card inf-card-add" onclick="showView('creation')">
@@ -962,16 +962,17 @@ function renderInfluenceurs(list) {
   var niches = {mode:'Mode & Lifestyle',fitness:'Fitness',tech:'Tech',food:'Cuisine',gaming:'Gaming',travel:'Voyage',business:'Business',beauty:'Beauté'}
   var emojis = {mode:'👗',fitness:'💪',tech:'💻',food:'🍕',gaming:'🎮',travel:'✈️',business:'💼',beauty:'💄'}
   var l = window.planLimits || { influenceurs:1 }
-  var html = list.map(function(inf) {
+
+  var addCardHtml
+  if(list.length < l.influenceurs) {
+    addCardHtml = '<div class="inf-card inf-card-add" onclick="showView(\'creation\')"><div class="inf-card-add-icon">+</div><div class="inf-card-add-text">Créer mon influenceur</div></div>'
+  } else {
+    addCardHtml = '<div class="inf-card inf-card-add" onclick="showUpgradeMessage(' + l.influenceurs + ')" style="border-color:rgba(201,168,76,.3)"><div class="inf-card-add-icon" style="background:rgba(201,168,76,.1)">🔓</div><div class="inf-card-add-text" style="color:var(--gold)">Upgrade pour plus</div></div>'
+  }
+
+  var html = addCardHtml + list.map(function(inf) {
     return '<div class="inf-card"><div class="inf-card-img"><span style="font-size:48px">' + (emojis[inf.niche]||'🤖') + '</span><span class="inf-card-platform" style="color:var(--cyan)">' + (inf.reseau||'') + '</span></div><div class="inf-card-body"><div class="inf-card-name">' + inf.nom + '</div><div class="inf-card-niche">' + (niches[inf.niche]||inf.niche) + '</div><div class="inf-card-stats"><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">abonnés</div></div><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">vidéos</div></div></div></div></div>'
   }).join('')
-
-  // Bouton créer seulement si limite non atteinte
-  if(list.length < l.influenceurs) {
-    html += '<div class="inf-card inf-card-add" onclick="showView(\'creation\')"><div class="inf-card-add-icon">+</div><div class="inf-card-add-text">Créer un influenceur</div></div>'
-  } else {
-    html += '<div class="inf-card inf-card-add" onclick="showUpgradeMessage(' + l.influenceurs + ')" style="border-color:rgba(201,168,76,.3)"><div class="inf-card-add-icon" style="background:rgba(201,168,76,.1)">🔓</div><div class="inf-card-add-text" style="color:var(--gold)">Upgrade pour plus</div></div>'
-  }
 
   document.getElementById('homeInfGrid').innerHTML = html
   document.getElementById('allInfGrid').innerHTML  = html
