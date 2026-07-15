@@ -123,27 +123,118 @@
     <!-- ═══ VUE ACCUEIL ═══ -->
     <div class="view active" id="view-home">
     
-      <!-- STATS GRID -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-card-label">Influenceurs</div>
-          <div class="stat-card-val sv" id="stat-inf">0</div>
-          <div class="stat-card-delta" id="stat-inf-limit">/ 1 max</div>
+      <!-- ═══ ANALYTICS ═══ -->
+      <div id="analyticsWrap" style="margin-bottom:36px">
+    
+        <!-- UPGRADE BANNER (Starter) -->
+        <div id="analyticsUpgradeBanner"
+          style="display:none;background:var(--bg2);border:1px solid rgba(123,97,255,.2);border-radius:var(--r-xl);padding:48px;text-align:center">
+          <div style="font-size:48px;margin-bottom:16px">📊</div>
+          <h3 style="font-size:18px;font-weight:800;margin-bottom:10px;color:var(--white)">Analytics disponible sur Nova
+          </h3>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6">Passe au plan <span
+              style="color:var(--violet2);font-weight:700">Nova</span> pour accéder aux statistiques de tes réseaux sociaux
+            en temps réel.</p>
+          <button onclick="window.location.href='index.html#tarifs'" class="btn-sm btn-violet"
+            style="padding:12px 28px;font-size:14px">Passer à Nova →</button>
         </div>
-        <div class="stat-card">
-          <div class="stat-card-label">Vidéos générées</div>
-          <div class="stat-card-val sc" id="stat-vid">0</div>
-          <div class="stat-card-delta" id="stat-vid-limit">/ 5 ce mois</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-label">Publications</div>
-          <div class="stat-card-val sg" id="stat-pub">0</div>
-          <div class="stat-card-delta">planifiées</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-label">Réseaux connectés</div>
-          <div class="stat-card-val so" id="stat-abn">0</div>
-          <div class="stat-card-delta" id="stat-reseau-limit">/ 1 max</div>
+    
+        <!-- ANALYTICS CONTENT (Nova+) -->
+        <div id="analyticsContent">
+    
+          <!-- 3 KPI -->
+          <div class="th-analytics-layout">
+          
+            <!-- COLONNE GAUCHE -->
+            <div class="th-analytics-left">
+              <div class="th-analytics-title">Données Analytics</div>
+              <div class="th-analytics-sub">Vue d'ensemble de tes performances</div>
+          
+              <div class="analytics-kpi-row">
+                <div class="analytics-kpi-card">
+                  <div class="analytics-kpi-label">Abonnés totaux</div>
+                  <div class="analytics-kpi-val" id="kpiAbonnes">—</div>
+                  <div class="analytics-kpi-delta" id="kpiAbonnesDelta">—</div>
+                  <div class="analytics-kpi-compare" id="kpiAbonnesCompare" style="display:none"></div>
+                </div>
+                <div class="analytics-kpi-card">
+                  <div class="analytics-kpi-label">Likes totaux</div>
+                  <div class="analytics-kpi-val" id="kpiLikes">—</div>
+                  <div class="analytics-kpi-delta" id="kpiLikesDelta">—</div>
+                  <div class="analytics-kpi-compare" id="kpiLikesCompare" style="display:none"></div>
+                </div>
+                <div class="analytics-kpi-card">
+                  <div class="analytics-kpi-label">Partages totaux</div>
+                  <div class="analytics-kpi-val" id="kpiPartages">—</div>
+                  <div class="analytics-kpi-delta" id="kpiPartagesDelta">—</div>
+                  <div class="analytics-kpi-compare" id="kpiPartagesCompare" style="display:none"></div>
+                </div>
+              </div>
+            </div>
+          
+            <!-- COLONNE DROITE -->
+            <div class="th-analytics-right">
+              <div class="th-analytics-title">Aperçu Réseaux</div>
+          
+              <div class="analytics-network-switch" style="margin-bottom:14px">
+                <button class="analytics-net-btn active" id="netBtn-tiktok" onclick="switchAnalyticsNetwork('tiktok')">
+                  <span style="font-size:14px">🎵</span>TikTok
+                </button>
+                <div class="analytics-net-sep"></div>
+                <button class="analytics-net-btn" id="netBtn-instagram" onclick="switchAnalyticsNetwork('instagram')">
+                  <span style="font-size:14px">📷</span>Instagram
+                </button>
+                <div class="analytics-net-sep"></div>
+                <button class="analytics-net-btn" id="netBtn-youtube" onclick="switchAnalyticsNetwork('youtube')">
+                  <span style="font-size:14px">▶️</span>YouTube Shorts
+                </button>
+              </div>
+          
+              <div class="analytics-summary-wrap" style="padding:0;background:none;border:none">
+          
+                <!-- FILTRES PÉRIODE -->
+                <div class="analytics-period-filters">
+                  <button class="analytics-period-btn active" id="periodBtn-7" onclick="switchPeriod(7)">7 jours</button>
+                  <button class="analytics-period-btn" id="periodBtn-30" onclick="switchPeriod(30)">Ce mois</button>
+                  <button class="analytics-period-btn" id="periodBtn-365" onclick="switchPeriod(365)">Cette année</button>
+                </div>
+          
+                <!-- MÉTRIQUES CLIQUABLES -->
+                <div class="analytics-metric-card active" id="metricCard-abonnes" onclick="switchMetric('abonnes')">
+                  <div class="analytics-metric-label">Abonnés gagnés</div>
+                  <div class="analytics-metric-val" id="summaryAbonnes">—</div>
+                </div>
+                <div class="analytics-metric-card" id="metricCard-likes" onclick="switchMetric('likes')">
+                  <div class="analytics-metric-label">Likes gagnés</div>
+                  <div class="analytics-metric-val" id="summaryLikes">—</div>
+                </div>
+                <div class="analytics-metric-card" id="metricCard-partages" onclick="switchMetric('partages')">
+                  <div class="analytics-metric-label">Partages</div>
+                  <div class="analytics-metric-val" id="summaryPartages">—</div>
+                </div>
+          
+                <!-- BOUTON MESSAGES -->
+                <div style="position:relative;margin-top:16px">
+                  <button class="analytics-messages-btn" onclick="openMessagesView()">
+                    💬 Voir les messages de mes abonnés
+                  </button>
+                  <div class="analytics-notif-badge" id="analyticsBadge">0</div>
+                </div>
+          
+              </div>
+            </div>
+          
+          </div>
+          
+          <!-- GRAPHIQUE (centré, pleine largeur) -->
+          <div class="analytics-chart-wrap th-chart-wrap">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+              <div style="font-size:13px;font-weight:700;color:var(--white)" id="chartTitle">Évolution des abonnés</div>
+            </div>
+            <div style="position:relative;height:280px">
+              <canvas id="analyticsChart"></canvas>
+            </div>
+          </div>
         </div>
       </div>
 
