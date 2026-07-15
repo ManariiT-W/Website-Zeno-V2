@@ -49,7 +49,6 @@ async function loadVideos() {
   empty.style.display = 'none';
   grid.style.display  = 'grid';
   if(floatBtn) floatBtn.style.display = 'block';
-  document.getElementById('stat-vid').textContent = data.length;
   renderVideoCards(data);
 }
 
