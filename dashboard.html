@@ -177,22 +177,23 @@
         <div id="analyticsContent">
     
           <!-- 3 KPI -->
-          <div class="analytics-kpi-row">
-            <div class="analytics-kpi-card">
-              <div class="analytics-kpi-label">Abonnés totaux</div>
-              <div class="analytics-kpi-val" id="kpiAbonnes">—</div>
-              <div class="analytics-kpi-delta" id="kpiAbonnesDelta">—</div>
-            </div>
-            <div class="analytics-kpi-card">
-              <div class="analytics-kpi-label">Likes totaux</div>
-              <div class="analytics-kpi-val" id="kpiLikes">—</div>
-              <div class="analytics-kpi-delta" id="kpiLikesDelta">—</div>
-            </div>
-            <div class="analytics-kpi-card">
-              <div class="analytics-kpi-label">Partages totaux</div>
-              <div class="analytics-kpi-val" id="kpiPartages">—</div>
-              <div class="analytics-kpi-delta" id="kpiPartagesDelta">—</div>
-            </div>
+          <div class="analytics-kpi-card">
+            <div class="analytics-kpi-label">Abonnés totaux</div>
+            <div class="analytics-kpi-val" id="kpiAbonnes">—</div>
+            <div class="analytics-kpi-delta" id="kpiAbonnesDelta">—</div>
+            <div class="analytics-kpi-compare" id="kpiAbonnesCompare" style="display:none"></div>
+          </div>
+          <div class="analytics-kpi-card">
+            <div class="analytics-kpi-label">Likes totaux</div>
+            <div class="analytics-kpi-val" id="kpiLikes">—</div>
+            <div class="analytics-kpi-delta" id="kpiLikesDelta">—</div>
+            <div class="analytics-kpi-compare" id="kpiLikesCompare" style="display:none"></div>
+          </div>
+          <div class="analytics-kpi-card">
+            <div class="analytics-kpi-label">Partages totaux</div>
+            <div class="analytics-kpi-val" id="kpiPartages">—</div>
+            <div class="analytics-kpi-delta" id="kpiPartagesDelta">—</div>
+            <div class="analytics-kpi-compare" id="kpiPartagesCompare" style="display:none"></div>
           </div>
     
           <!-- GRAPHIQUE + RÉSUMÉ -->
@@ -2162,6 +2163,13 @@ function renderAnalytics() {
   document.getElementById('kpiLikesDelta').textContent    = '+' + formatNumber(d.evolution.likes.slice(-30).reduce(function(a,b){return a+b},0)) + ' ce mois'
   document.getElementById('kpiPartagesDelta').textContent = '+' + formatNumber(d.evolution.partages.slice(-30).reduce(function(a,b){return a+b},0)) + ' ce mois'
 
+  // Comparaison vs période précédente (Stellar uniquement)
+  if(window.currentPlanUser === 'stellar') {
+    updateKpiCompare('kpiAbonnesCompare',  d.evolution.abonnes,  period)
+    updateKpiCompare('kpiLikesCompare',    d.evolution.likes,    period)
+    updateKpiCompare('kpiPartagesCompare', d.evolution.partages, period)
+  }
+  
   // Résumé
   var evoSlice = d.evolution[metric === 'abonnes' ? 'abonnes' : metric].slice(-period)
   var total    = evoSlice.reduce(function(a,b){return a+b},0)
@@ -2180,6 +2188,30 @@ function renderAnalytics() {
 
   // Graphique
   renderChart(d.evolution[metric === 'abonnes' ? 'abonnes' : metric].slice(-period), period)
+}
+
+function calculateCompare(arr, period) {
+  var current  = arr.slice(-period).reduce(function(a,b){return a+b},0)
+  var prevSlice = arr.slice(-(period*2), -period)
+  var previous  = prevSlice.reduce(function(a,b){return a+b},0)
+  if(previous === 0) return null
+  return ((current - previous) / previous) * 100
+}
+
+function updateKpiCompare(elId, arr, period) {
+  var el = document.getElementById(elId)
+  if(!el) return
+  var pct = calculateCompare(arr, period)
+  if(pct === null) {
+    el.style.display = 'none'
+    return
+  }
+  el.style.display = 'flex'
+  var isUp   = pct >= 0
+  var arrow  = isUp ? '↑' : '↓'
+  var cls    = isUp ? 'kpi-compare-up' : 'kpi-compare-down'
+  el.className   = 'analytics-kpi-compare ' + cls
+  el.textContent = arrow + ' ' + Math.abs(pct).toFixed(1) + '% vs période précédente'
 }
 
 function renderChart(data, period) {
