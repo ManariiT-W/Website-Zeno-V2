@@ -993,7 +993,7 @@ function _showView(id) {
   if(id === 'historique') { setTimeout(loadHistorique, 100); }
   if(id === 'scripts')    { setTimeout(loadScripts, 100); }
   document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active') })
-  document.querySelectorAll('.sidebar-item').forEach(function(i) { i.classList.remove('active') })
+  document.querySelectorAll('.topnav-item').forEach(function(i) { i.classList.remove('active') })
   document.getElementById('view-' + id).classList.add('active')
   var navEl = document.getElementById('nav-' + id)
   if(navEl) navEl.classList.add('active')
