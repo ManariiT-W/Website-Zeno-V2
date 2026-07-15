@@ -40,57 +40,36 @@
   </div>
 </div>
 
+<!-- ═══ TOP NAVBAR ═══ -->
+<nav class="topnav" id="topnav">
+  <div class="topnav-logo">✦ ZENO</div>
+
+  <div class="topnav-links">
+    <div class="topnav-item active" id="nav-home" onclick="showView('home')">
+      <span class="topnav-item-icon">🏠</span>Tableau Bord
+    </div>
+    <div class="topnav-item" id="nav-influenceurs" onclick="showView('influenceurs')">
+      <span class="topnav-item-icon">🤖</span>Influenceur
+    </div>
+    <div class="topnav-item" id="nav-videos" onclick="showView('videos')">
+      <span class="topnav-item-icon">🎬</span>Vidéos
+    </div>
+    <div class="topnav-item" id="nav-planning" onclick="showView('planning')">
+      <span class="topnav-item-icon">📅</span>Planning
+    </div>
+  </div>
+
+  <div class="topnav-profile" id="topnavProfile" onclick="toggleRightSidebar()">
+    <div>
+      <div class="topnav-profile-name" id="userName">Chargement...</div>
+      <div class="topnav-profile-plan" id="userPlan">Plan Starter</div>
+    </div>
+    <div class="topnav-profile-av" id="userAv">A</div>
+  </div>
+</nav>
+
 <!-- ═══ DASHBOARD ═══ -->
-<button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
-
 <div class="dashboard" id="dashboard">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-text">✦ ZENO</div>
-    </div>
-
-    <nav class="sidebar-nav">
-      <div class="sidebar-item active" id="nav-home" onclick="showView('home')">
-        <span class="sidebar-item-icon">🏠</span>Accueil
-      </div>
-      <div class="sidebar-item" id="nav-influenceurs" onclick="showView('influenceurs')">
-        <span class="sidebar-item-icon">🤖</span>Mes influenceurs
-      </div>
-      <div class="sidebar-item" id="nav-creation" onclick="showView('creation')">
-        <span class="sidebar-item-icon">✨</span>Créer un influenceur
-      </div>
-      <div class="sidebar-item" id="nav-videos" onclick="showView('videos')">
-        <span class="sidebar-item-icon">🎬</span>Vidéos
-      </div>
-      <div class="sidebar-item" id="nav-planning" onclick="showView('planning')">
-        <span class="sidebar-item-icon">📅</span>Planning
-      </div>
-      <div class="sidebar-item" id="nav-historique" onclick="showView('historique')">
-        <span class="sidebar-item-icon">📋</span>Historique
-      </div>
-      <div class="sidebar-item" id="nav-scripts" onclick="showView('scripts')">
-        <span class="sidebar-item-icon">📝</span>Scripts
-      </div>
-      <div class="sidebar-item" id="nav-parametres" onclick="showView('parametres')">
-        <span class="sidebar-item-icon">⚙️</span>Paramètres
-      </div>
-    </nav>
-
-    <div class="sidebar-bottom">
-      <div class="sidebar-user">
-        <div class="sidebar-user-av" id="userAv">A</div>
-        <div>
-          <div class="sidebar-user-name" id="userName">Chargement...</div>
-          <div class="sidebar-user-plan" id="userPlan">Plan Starter</div>
-        </div>
-      </div>
-      <button class="sidebar-logout" onclick="handleLogout()">
-        <span>🚪</span>Déconnexion
-      </button>
-    </div>
-  </aside>
 
   <!-- MAIN CONTENT -->
   <main class="main">
@@ -98,12 +77,8 @@
     <!-- TOPBAR -->
     <div class="topbar">
       <div>
-        <div class="topbar-title" id="viewTitle">Accueil</div>
-        <div class="topbar-sub" id="viewSub">Bienvenue sur ton dashboard Zeno</div>
-      </div>
-      <div class="topbar-right">
-        <span class="plan-badge plan-starter" id="planBadge">Starter</span>
-        <button class="btn-sm btn-violet" onclick="showView('creation')">+ Créer</button>
+        <div class="topbar-title" id="viewTitle">Tableau Bord</div>
+        <div class="topbar-sub" id="viewSub">Vue d'ensemble de ton activité</div>
       </div>
     </div>
 
@@ -898,9 +873,6 @@ async function loadUserData() {
     document.getElementById('param-prenom').value   = prenom
     document.getElementById('param-email').value    = currentUser.email
     document.getElementById('param-plan-name').textContent = plan.charAt(0).toUpperCase() + plan.slice(1)
-    var badge = document.getElementById('planBadge')
-    badge.textContent = plan.charAt(0).toUpperCase() + plan.slice(1)
-    badge.className   = 'plan-badge plan-' + plan
 
     // Adapter le dashboard selon le plan
     applyPlanRestrictions(plan)
@@ -1030,14 +1002,11 @@ function _showView(id) {
     document.getElementById('viewTitle').textContent = t.title
     document.getElementById('viewSub').textContent   = t.sub
   }
-  if(window.innerWidth <= 768) {
-    document.getElementById('sidebar').classList.remove('open')
-  }
 }
 
-/* ═══ SIDEBAR MOBILE ═══ */
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open')
+/* ═══ BARRE LATÉRALE DROITE (implémentation étape 2) ═══ */
+function toggleRightSidebar() {
+  console.log('Ouverture barre latérale droite — à venir étape 2')
 }
 
 /* ═══ CREATION STEPPER ═══ */
