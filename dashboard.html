@@ -1222,9 +1222,7 @@ function toggleReseau(reseau) {
   var l = window.planLimits || { reseaux:1 }
   var idx = reseauxLies.indexOf(reseau)
   if(idx > -1) {
-    reseauxLies.splice(idx, 1)
-    updateReseauUI(reseau, false)
-    saveReseauxLies()
+    confirmDelierReseau(reseau)
     return
   }
   if(reseauxLies.length >= l.reseaux) {
@@ -1238,6 +1236,52 @@ function toggleReseau(reseau) {
     saveReseauxLies()
     showReseauPopup('success', reseau)
   }, 1500)
+}
+
+function delierReseau(reseau) {
+  var idx = reseauxLies.indexOf(reseau)
+  if(idx > -1) reseauxLies.splice(idx, 1)
+  updateReseauUI(reseau, false)
+  saveReseauxLies()
+}
+
+function confirmDelierReseau(reseau) {
+  var labels = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
+  var overlay = document.createElement('div')
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.88);backdrop-filter:blur(6px)'
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(239,68,68,.2);border-radius:24px;padding:36px;width:100%;max-width:400px;text-align:center'
+  var icon = document.createElement('div')
+  icon.style.cssText = 'font-size:44px;margin-bottom:16px'
+  icon.textContent = '🔗'
+  var titleEl = document.createElement('h3')
+  titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:10px;color:#fff"
+  titleEl.textContent = 'Délier ce compte ?'
+  var msgEl = document.createElement('p')
+  msgEl.style.cssText = 'font-size:13px;color:#6b6b80;line-height:1.65;margin-bottom:8px'
+  msgEl.innerHTML = 'Tu es sur le point de délier <b style="color:#fff">' + labels[reseau] + '</b>.'
+  var msg2El = document.createElement('p')
+  msg2El.style.cssText = 'font-size:12px;color:#ef4444;margin-bottom:24px;font-weight:600'
+  msg2El.textContent = 'La publication automatique sur ce réseau sera désactivée.'
+  var btnWrap = document.createElement('div')
+  btnWrap.style.cssText = 'display:flex;gap:10px'
+  var btnCancel = document.createElement('button')
+  btnCancel.style.cssText = 'flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#a0a0b0;font-size:13px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnCancel.textContent = 'Annuler'
+  btnCancel.onclick = function() { overlay.remove() }
+  var btnConfirm = document.createElement('button')
+  btnConfirm.style.cssText = 'flex:1;padding:12px;border-radius:12px;background:#ef4444;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnConfirm.textContent = 'Oui, délier'
+  btnConfirm.onclick = function() { overlay.remove(); delierReseau(reseau) }
+  btnWrap.appendChild(btnCancel)
+  btnWrap.appendChild(btnConfirm)
+  box.appendChild(icon)
+  box.appendChild(titleEl)
+  box.appendChild(msgEl)
+  box.appendChild(msg2El)
+  box.appendChild(btnWrap)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
 }
 
 function updateReseauUI(reseau, status) {
