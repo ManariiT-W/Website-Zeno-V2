@@ -68,6 +68,44 @@
   </div>
 </nav>
 
+<!-- ═══ BARRE LATÉRALE DROITE ═══ -->
+<div class="right-sidebar-overlay" id="rightSidebarOverlay" onclick="closeRightSidebar()"></div>
+<aside class="right-sidebar" id="rightSidebar">
+  <div class="rs-header">Mon activité</div>
+
+  <div class="rs-stats-grid">
+    <div class="rs-stat-card">
+      <div class="rs-stat-label">Influenceurs</div>
+      <div class="rs-stat-val-wrap"><span class="rs-stat-val" id="rsStatInf">0</span><span class="rs-stat-limit" id="rsStatInfLimit">/ 1 max</span></div>
+    </div>
+    <div class="rs-stat-card">
+      <div class="rs-stat-label">Vidéos générées</div>
+      <div class="rs-stat-val-wrap"><span class="rs-stat-val" id="rsStatVid">0</span><span class="rs-stat-limit" id="rsStatVidLimit">/ 5 ce mois</span></div>
+    </div>
+    <div class="rs-stat-card">
+      <div class="rs-stat-label">Publications</div>
+      <div class="rs-stat-val-wrap"><span class="rs-stat-val" id="rsStatPub">0</span><span class="rs-stat-limit">planifiées</span></div>
+    </div>
+    <div class="rs-stat-card">
+      <div class="rs-stat-label">Réseaux connectés</div>
+      <div class="rs-stat-val-wrap"><span class="rs-stat-val" id="rsStatReseau">0</span><span class="rs-stat-limit" id="rsStatReseauLimit">/ 3</span></div>
+    </div>
+    <div class="rs-stat-card">
+      <div class="rs-stat-label">Scripts créés</div>
+      <div class="rs-stat-val-wrap"><span class="rs-stat-val" id="rsStatScripts">0</span></div>
+    </div>
+  </div>
+
+  <div class="rs-divider"></div>
+
+  <div class="rs-link" onclick="closeRightSidebar(); showView('historique')">Historique</div>
+  <div class="rs-link" onclick="closeRightSidebar(); showView('parametres')">Paramètres</div>
+
+  <div class="rs-bottom">
+    <button class="rs-logout" onclick="handleLogout()">Déconnexion</button>
+  </div>
+</aside>
+
 <!-- ═══ DASHBOARD ═══ -->
 <div class="dashboard" id="dashboard">
 
@@ -878,6 +916,7 @@ async function loadUserData() {
     applyPlanRestrictions(plan)
   }
   loadInfluenceurs()
+  loadReseauxLies()
   initAnalytics()
 }
 
@@ -1004,9 +1043,41 @@ function _showView(id) {
   }
 }
 
-/* ═══ BARRE LATÉRALE DROITE (implémentation étape 2) ═══ */
+/* ═══ BARRE LATÉRALE DROITE ═══ */
 function toggleRightSidebar() {
-  console.log('Ouverture barre latérale droite — à venir étape 2')
+  var sidebar = document.getElementById('rightSidebar')
+  var overlay = document.getElementById('rightSidebarOverlay')
+  if(sidebar.classList.contains('open')) {
+    closeRightSidebar()
+  } else {
+    sidebar.classList.add('open')
+    overlay.classList.add('open')
+    loadRightSidebarStats()
+  }
+}
+
+function closeRightSidebar() {
+  document.getElementById('rightSidebar').classList.remove('open')
+  document.getElementById('rightSidebarOverlay').classList.remove('open')
+}
+
+async function loadRightSidebarStats() {
+  if(!currentUser) return
+  var l = window.planLimits || { influenceurs:1, videos:5, reseaux:1 }
+
+  const { data: infs }    = await zenoDb.from('influenceurs').select('id').eq('user_id', currentUser.id)
+  const { data: vids }    = await zenoDb.from('videos').select('id').eq('user_id', currentUser.id)
+  const { data: pubs }    = await zenoDb.from('publications').select('id').eq('user_id', currentUser.id).eq('statut', 'planifie')
+  const { data: scripts } = await zenoDb.from('scripts').select('id').eq('user_id', currentUser.id)
+
+  document.getElementById('rsStatInf').textContent         = infs ? infs.length : 0
+  document.getElementById('rsStatInfLimit').textContent    = '/ ' + l.influenceurs + ' max'
+  document.getElementById('rsStatVid').textContent         = vids ? vids.length : 0
+  document.getElementById('rsStatVidLimit').textContent    = '/ ' + l.videos + ' ce mois'
+  document.getElementById('rsStatPub').textContent         = pubs ? pubs.length : 0
+  document.getElementById('rsStatReseau').textContent      = reseauxLies.length
+  document.getElementById('rsStatReseauLimit').textContent = '/ ' + (l.reseaux === 999 ? 'tous' : l.reseaux)
+  document.getElementById('rsStatScripts').textContent     = scripts ? scripts.length : 0
 }
 
 /* ═══ CREATION STEPPER ═══ */
