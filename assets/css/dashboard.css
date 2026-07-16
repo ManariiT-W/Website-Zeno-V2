@@ -490,3 +490,5 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 /* ═══ BOUTON RAPIDE + (barre latérale droite) ═══ */
 .rs-quick-add{width:28px;height:28px;border-radius:50%;background:rgba(123,97,255,.15);border:1px solid rgba(123,97,255,.35);color:var(--violet2);font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
 .rs-quick-add:hover{background:rgba(123,97,255,.28);border-color:rgba(123,97,255,.55);transform:scale(1.08)}
+.rs-stat-card-scripts{flex-direction:column;align-items:stretch;gap:12px}
+.rs-stat-card-top{display:flex;align-items:center;justify-content:space-between;width:100%}
