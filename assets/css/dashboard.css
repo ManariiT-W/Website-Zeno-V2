@@ -63,7 +63,8 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 .sidebar-logout:hover{color:#ef4444;background:rgba(239,68,68,.08)}
 
 /* ═══ TOP NAVBAR ═══ */
-.topnav{position:fixed;top:0;left:0;right:0;height:84px;z-index:150;display:flex;align-items:center;gap:32px;padding:0 36px;background:var(--bg2);border-bottom:1px solid var(--border2);overflow:hidden}
+.topnav{position:fixed;top:0;left:0;right:0;height:84px;z-index:150;display:none;align-items:center;gap:32px;padding:0 36px;background:var(--bg2);border-bottom:1px solid var(--border2);overflow:hidden}
+.topnav.active{display:flex}
 .topnav-logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:1px;background:linear-gradient(135deg,var(--violet),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex-shrink:0}
 .topnav-links{display:flex;align-items:center;justify-content:center;gap:48px;flex:1;min-width:0}
 .topnav-item{position:relative;padding:8px 2px;cursor:pointer;transition:color .2s;font-size:14.5px;font-weight:600;letter-spacing:.02em;color:var(--muted);white-space:nowrap}

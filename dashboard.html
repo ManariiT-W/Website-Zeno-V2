@@ -853,6 +853,8 @@ function toggleLoginPwd() {
 async function handleLogout() {
   await zenoDb.auth.signOut()
   document.getElementById('dashboard').classList.remove('active')
+  document.getElementById('topnav').classList.remove('active')
+  closeRightSidebar()
   document.getElementById('loginPage').style.display = 'flex'
   document.getElementById('loginBtn').innerHTML = 'Se connecter'
   document.getElementById('loginBtn').disabled = false
@@ -862,6 +864,7 @@ async function handleLogout() {
 function showDashboard() {
   document.getElementById('loginPage').style.display = 'none'
   document.getElementById('dashboard').classList.add('active')
+  document.getElementById('topnav').classList.add('active')
 }
 
 /* ═══ LOAD USER DATA ═══ */
