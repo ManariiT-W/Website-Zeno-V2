@@ -543,8 +543,26 @@
 
       <!-- VUE PRINCIPALE VIDEOS -->
       <div id="videosMainView">
+
+        <!-- ═══ STATS PAR VIDÉO (Stellar) ═══ -->
+        <div style="margin-bottom:28px">
+          <div class="section-head">
+            <div class="section-head-title">Statistiques par vidéo</div>
+          </div>
+
+          <div id="videoStatsUpgradeBanner" style="display:none;background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:var(--r-xl);padding:40px;text-align:center">
+            <div style="font-size:44px;margin-bottom:14px">📊</div>
+            <h3 style="font-size:17px;font-weight:800;margin-bottom:8px;color:var(--white)">Analytics par vidéo — Stellar</h3>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6">Passe au plan <span style="color:var(--gold);font-weight:700">Stellar</span> pour voir les statistiques détaillées de chacune de tes vidéos.</p>
+            <button onclick="window.location.href='index.html#tarifs'" class="btn-sm btn-violet" style="padding:11px 24px">Passer à Stellar →</button>
+          </div>
+
+          <div id="videoStatsWrap" style="display:none;overflow-x:auto"></div>
+        </div>
+
         <div class="section-head">
           <div class="section-head-title">Mes vidéos</div>
+          
           <select id="videoFilter" onchange="filterVideos(this.value)" style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:7px 12px;color:var(--muted2);font-size:12px;cursor:pointer;outline:none">
             <option value="all">Tous les statuts</option>
             <option value="en_attente">En attente</option>

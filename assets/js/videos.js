@@ -3,6 +3,49 @@
    Gestion complète de la section vidéos
 ═══════════════════════════════════════ */
 
+/* ─── STATS SIMULÉES PAR VIDÉO (déterministe via id) ─── */
+function hashStringToInt(str) {
+  var hash = 0;
+  for(var i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function seededRandom(seed) {
+  var x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+function generateVideoStats(videoId) {
+  var seed  = hashStringToInt(videoId);
+  var vues  = Math.floor(seededRandom(seed) * 9000) + 500;
+  var likes = Math.floor(seededRandom(seed + 1) * vues * 0.3);
+  var parts = Math.floor(seededRandom(seed + 2) * vues * 0.08);
+  var eng   = vues > 0 ? (((likes + parts) / vues) * 100).toFixed(1) : '0.0';
+  return { vues: vues, likes: likes, partages: parts, engagement: eng };
+}
+
+function renderVideoStatsTable(videos) {
+  var wrap = document.getElementById('videoStatsWrap');
+  if(!wrap) return;
+
+  if(!videos || videos.length === 0) {
+    wrap.innerHTML = '<div class="empty-state" style="padding:40px 20px"><div class="empty-icon">📊</div><div class="empty-title">Aucune donnée</div><div class="empty-sub">Génère des vidéos pour voir leurs statistiques.</div></div>';
+    return;
+  }
+
+  var reseauLabels = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' };
+  var rows = videos.map(function(v) {
+    var s    = generateVideoStats(v.id);
+    var date = new Date(v.created_at).toLocaleDateString('fr-FR');
+    return '<tr><td>' + (v.titre || 'Vidéo sans titre') + '</td><td>' + (reseauLabels[v.reseau] || v.reseau || '—') + '</td><td>' + date + '</td><td>' + formatNumber(s.vues) + '</td><td>' + formatNumber(s.likes) + '</td><td>' + formatNumber(s.partages) + '</td><td>' + s.engagement + '%</td></tr>';
+  }).join('');
+
+  wrap.innerHTML = '<table class="videos-table"><thead><tr><th>Vidéo</th><th>Réseau</th><th>Date</th><th>Vues</th><th>Likes</th><th>Partages</th><th>Engagement</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
 /* ─── CHARGER LES VIDÉOS ─── */
 async function loadVideos() {
   if(!currentUser) return;
@@ -35,6 +78,20 @@ async function loadVideos() {
           v.statut = 'publiee';
         }
       }
+    }
+  }
+
+  var plan        = window.currentPlanUser || 'starter';
+  var statsBanner = document.getElementById('videoStatsUpgradeBanner');
+  var statsWrap   = document.getElementById('videoStatsWrap');
+  if(statsBanner && statsWrap) {
+    if(plan === 'stellar') {
+      statsBanner.style.display = 'none';
+      statsWrap.style.display   = 'block';
+      renderVideoStatsTable(videos);
+    } else {
+      statsBanner.style.display = 'block';
+      statsWrap.style.display   = 'none';
     }
   }
 
