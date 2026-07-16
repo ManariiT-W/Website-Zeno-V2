@@ -35,6 +35,16 @@ async function getInfluenceurs() {
   return data || []
 }
 
+/* ─── CONSTRUIRE UNE OPTION QUALITÉ SELON LE PLAN ─── */
+function buildQualiteOption(val) {
+  var plan = window.currentPlanUser || 'starter'
+  var unlocked = (plan === 'nova' || plan === 'stellar')
+  if(unlocked) {
+    return '<div class="gen-option" data-group="qualite" data-val="' + val + '" onclick="selectOption(this,\'qualite\')"><span class="gen-option-label">' + val + '</span></div>'
+  }
+  return '<div class="gen-option gen-option-locked" data-group="qualite" data-val="' + val + '" data-plan="nova" onclick="selectQualiteLocked(this,\'nova\')"><span class="gen-option-label">' + val + '</span><span class="gen-option-lock">🔒</span></div>'
+}
+
 /* ─── CONSTRUIRE LE HTML ─── */
 function buildGenerationHTML(infs) {
   var infCards = ''
@@ -75,8 +85,8 @@ function buildGenerationHTML(infs) {
     '<div class="gen-section-title" style="margin-top:20px">Qualité vidéo</div>' +
     '<div class="gen-options-grid">' +
     '<div class="gen-option selected" data-group="qualite" data-val="720p" onclick="selectOption(this,\'qualite\')"><span class="gen-option-label">720p</span></div>' +
-    '<div class="gen-option gen-option-locked" data-group="qualite" data-val="1080p" data-plan="nova" onclick="selectQualiteLocked(this,\'nova\')"><span class="gen-option-label">1080p</span><span class="gen-option-lock">🔒</span></div>' +
-    '<div class="gen-option gen-option-locked" data-group="qualite" data-val="4K" data-plan="nova" onclick="selectQualiteLocked(this,\'nova\')"><span class="gen-option-label">4K</span><span class="gen-option-lock">🔒</span></div>' +
+    buildQualiteOption('1080p') +
+    buildQualiteOption('4K') +
     '</div>' +
 
     '<div class="gen-section-title" style="margin-top:20px">Durée</div>' +
