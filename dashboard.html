@@ -549,18 +549,12 @@
             <option value="erreur">Erreur</option>
           </select>
         </div>
-        <div id="videosGrid" style="display:none;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px"></div>
-        <div id="videosEmpty" style="text-align:center;padding:80px 20px">
-          <div style="font-size:64px;margin-bottom:20px;opacity:.4">🎬</div>
-          <h3 style="font-size:18px;font-weight:700;margin-bottom:8px;color:var(--muted2)">Aucune vidéo générée</h3>
-          <p style="font-size:13px;color:var(--muted);margin-bottom:32px">Lance ta première génération de vidéo pour ton influenceur IA.</p>
-          <button onclick="checkAndOpenGeneration()" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--violet),#5a3fd8);border:none;border-radius:var(--r-lg);padding:16px 32px;color:var(--white);font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 0 30px rgba(123,97,255,.35);transition:all .3s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 40px rgba(123,97,255,.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 0 30px rgba(123,97,255,.35)'">
-            <span style="font-size:20px">✨</span>Génère ta vidéo
-          </button>
+        <div id="videosGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
+          <div class="video-card video-card-add" onclick="checkAndOpenGeneration()">
+            <div class="video-card-add-icon">+</div>
+            <div class="video-card-add-text">Créer ma vidéo</div>
+          </div>
         </div>
-        <button id="btnGenererFloat" onclick="checkAndOpenGeneration()" style="display:none;position:fixed;bottom:32px;right:32px;z-index:50;background:var(--violet);border:none;border-radius:var(--r-lg);padding:14px 24px;color:var(--white);font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 8px 24px rgba(123,97,255,.4);transition:all .25s">
-          + Génère ta vidéo
-        </button>
       </div>
 
       <!-- VUE GENERATION (Partie 2) -->

@@ -479,3 +479,9 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 .th-net-btn{width:100%;justify-content:flex-start;padding:11px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md)}
 .th-net-btn.active{background:rgba(123,97,255,.15);border-color:rgba(123,97,255,.35)}
 @media(max-width:900px){.th-reseaux-inner{grid-template-columns:1fr}.th-reseaux-metrics{flex-direction:column}}
+
+/* ═══ VIDEO CARD ADD ═══ */
+.video-card-add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:220px;background:rgba(123,97,255,.06);border:1.5px dashed rgba(123,97,255,.3);cursor:pointer;transition:all .25s}
+.video-card-add:hover{background:rgba(123,97,255,.1);border-color:rgba(123,97,255,.5);transform:none;box-shadow:none}
+.video-card-add-icon{width:44px;height:44px;border-radius:50%;background:rgba(123,97,255,.15);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--violet2)}
+.video-card-add-text{font-size:13px;font-weight:600;color:var(--violet2)}

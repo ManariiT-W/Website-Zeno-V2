@@ -6,10 +6,8 @@
 /* ─── CHARGER LES VIDÉOS ─── */
 async function loadVideos() {
   if(!currentUser) return;
-  var grid     = document.getElementById('videosGrid');
-  var empty    = document.getElementById('videosEmpty');
-  var floatBtn = document.getElementById('btnGenererFloat');
-  if(!grid || !empty) return;
+  var grid = document.getElementById('videosGrid');
+  if(!grid) return;
 
   const { data } = await zenoDb
     .from('videos')
@@ -17,16 +15,10 @@ async function loadVideos() {
     .eq('user_id', currentUser.id)
     .order('created_at', {ascending:false});
 
-  if(!data || data.length === 0) {
-    empty.style.display = 'block';
-    grid.style.display  = 'none';
-    if(floatBtn) floatBtn.style.display = 'none';
-    return;
-  }
-
+  var videos = data || [];
   var now = new Date();
-  for(var i = 0; i < data.length; i++) {
-    var v = data[i];
+  for(var i = 0; i < videos.length; i++) {
+    var v = videos[i];
     if(v.statut === 'en_attente') {
       const { data: pubs } = await zenoDb
         .from('publications')
@@ -46,16 +38,13 @@ async function loadVideos() {
     }
   }
 
-  empty.style.display = 'none';
-  grid.style.display  = 'grid';
-  if(floatBtn) floatBtn.style.display = 'block';
-  renderVideoCards(data);
+  renderVideoCards(videos);
 }
 
 /* ─── AFFICHER LES CARTES VIDÉOS ─── */
 function renderVideoCards(videos) {
   var grid = document.getElementById('videosGrid');
-  var html = '';
+  var html = '<div class="video-card video-card-add" onclick="checkAndOpenGeneration()"><div class="video-card-add-icon">+</div><div class="video-card-add-text">Créer ma vidéo</div></div>';
   videos.forEach(function(v) {
     var statusColor = v.statut === 'publiee'  ? 'var(--green)'  :
                       v.statut === 'erreur'   ? '#ef4444'       :
@@ -81,6 +70,7 @@ function renderVideoCards(videos) {
 /* ─── FILTRER LES VIDÉOS ─── */
 function filterVideos(status) {
   document.querySelectorAll('.video-card').forEach(function(card) {
+    if(card.classList.contains('video-card-add')) return;
     if(status === 'all' || card.dataset.status === status) {
       card.style.display = '';
     } else {
