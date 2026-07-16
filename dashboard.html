@@ -889,6 +889,7 @@ async function loadUserData() {
     applyPlanRestrictions(plan)
   }
   loadInfluenceurs()
+  loadHomeVideos()
   loadReseauxLies()
   initAnalytics()
 }
@@ -977,6 +978,37 @@ function renderInfluenceurs(list) {
   document.getElementById('allInfGrid').innerHTML  = html
 }
 
+async function loadHomeVideos() {
+  if(!currentUser) return
+  var wrap = document.getElementById('homeVideosWrap')
+  if(!wrap) return
+
+  const { data } = await zenoDb
+    .from('videos')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending:false })
+    .limit(4)
+
+  if(!data || data.length === 0) {
+    wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">🎬</div><div class="empty-title">Aucune vidéo pour l\'instant</div><div class="empty-sub">Crée ton premier influenceur pour commencer à générer des vidéos.</div></div>'
+    return
+  }
+
+  var html = '<div class="videos-grid">' + data.map(function(v) {
+    var statusColor = v.statut === 'publiee'  ? 'var(--green)'  :
+                      v.statut === 'erreur'   ? '#ef4444'       :
+                      v.statut === 'en_cours' ? 'var(--gold)'   : 'var(--muted2)'
+    var statusLabel = v.statut === 'publiee'  ? '✓ Publiée'     :
+                      v.statut === 'erreur'   ? '✗ Erreur'      :
+                      v.statut === 'en_cours' ? '⏳ En cours'   : '○ En attente'
+    var date = new Date(v.created_at).toLocaleDateString('fr-FR')
+    return '<div class="video-card"><div class="video-card-thumb"><span class="video-card-emoji">🎬</span><div class="video-card-status" style="color:' + statusColor + '">' + statusLabel + '</div></div><div class="video-card-body"><div class="video-card-title">' + (v.titre || 'Vidéo sans titre') + '</div><div class="video-card-meta">' + (v.reseau || '') + ' · ' + date + '</div></div></div>'
+  }).join('') + '</div>'
+
+  wrap.innerHTML = html
+}
+
 /* ═══ NAVIGATION VUES ═══ */
 var viewTitles = {
   home:         { title:'Accueil',              sub:'Vue d\'ensemble de ton activité' },
@@ -1000,6 +1032,7 @@ function showView(id) {
   _showView(id)
 }
 function _showView(id) {
+  if(id === 'home')       { setTimeout(loadHomeVideos, 100); }
   if(id === 'videos')     { setTimeout(loadVideos, 100); }
   if(id === 'planning')   { setTimeout(loadPlanning, 100); }
   if(id === 'historique') { setTimeout(loadHistorique, 100); }
