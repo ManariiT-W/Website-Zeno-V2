@@ -991,7 +991,10 @@ async function loadInfluenceurs() {
 function renderInfluenceurs(list) {
   var niches = {mode:'Mode & Lifestyle',fitness:'Fitness',tech:'Tech',food:'Cuisine',gaming:'Gaming',travel:'Voyage',business:'Business',beauty:'Beauté'}
   var emojis = {mode:'👗',fitness:'💪',tech:'💻',food:'🍕',gaming:'🎮',travel:'✈️',business:'💼',beauty:'💄'}
-  var l = window.planLimits || { influenceurs:1 }
+  var l    = window.planLimits    || { influenceurs:1 }
+  var plan = window.currentPlanUser || 'starter'
+
+  window.influenceursData = list
 
   var addCardHtml
   if(list.length < l.influenceurs) {
@@ -1001,7 +1004,9 @@ function renderInfluenceurs(list) {
   }
 
   var html = addCardHtml + list.map(function(inf) {
-    return '<div class="inf-card"><div class="inf-card-img"><span style="font-size:48px">' + (emojis[inf.niche]||'🤖') + '</span><span class="inf-card-platform" style="color:var(--cyan)">' + (inf.reseau||'') + '</span></div><div class="inf-card-body"><div class="inf-card-name">' + inf.nom + '</div><div class="inf-card-niche">' + (niches[inf.niche]||inf.niche) + '</div><div class="inf-card-stats"><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">abonnés</div></div><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">vidéos</div></div></div></div></div>'
+    var clickAttr     = plan === 'stellar' ? ' onclick="openInfluenceurObjectif(\'' + inf.id + '\')" style="cursor:pointer"' : ''
+    var objectifBlock = plan === 'stellar' ? buildObjectifMiniBar(inf) : ''
+    return '<div class="inf-card"' + clickAttr + '><div class="inf-card-img"><span style="font-size:48px">' + (emojis[inf.niche]||'🤖') + '</span><span class="inf-card-platform" style="color:var(--cyan)">' + (inf.reseau||'') + '</span></div><div class="inf-card-body"><div class="inf-card-name">' + inf.nom + '</div><div class="inf-card-niche">' + (niches[inf.niche]||inf.niche) + '</div><div class="inf-card-stats"><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">abonnés</div></div><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">vidéos</div></div></div>' + objectifBlock + '</div></div>'
   }).join('')
 
   document.getElementById('homeInfGrid').innerHTML = html
@@ -1037,6 +1042,144 @@ async function loadHomeVideos() {
   }).join('') + '</div>'
 
   wrap.innerHTML = html
+}
+
+/* ═══ OBJECTIFS INFLUENCEUR (Stellar) ═══ */
+var OBJECTIF_TYPE_LABELS = { abonnes:'Abonnés', vues:'Vues', likes:'Likes' }
+
+function getSimulatedInfluenceurStat(id, type) {
+  var seed   = hashStringToInt(id + '-' + type)
+  var ranges = { abonnes: [500, 50000], vues: [2000, 300000], likes: [1000, 120000] }
+  var r      = ranges[type] || ranges.abonnes
+  return Math.floor(seededRandom(seed) * (r[1] - r[0])) + r[0]
+}
+
+function computeObjectifProgress(inf) {
+  if(!inf.objectif_type || !inf.objectif_valeur) return null
+  var current = getSimulatedInfluenceurStat(inf.id, inf.objectif_type)
+  var pct     = Math.min(100, Math.round((current / inf.objectif_valeur) * 100))
+  return { current: current, target: inf.objectif_valeur, pct: pct }
+}
+
+function buildObjectifMiniBar(inf) {
+  var progress = computeObjectifProgress(inf)
+  if(!progress) {
+    return '<div class="inf-objectif-empty">🎯 Définir un objectif</div>'
+  }
+  var label = OBJECTIF_TYPE_LABELS[inf.objectif_type] || inf.objectif_type
+  return '<div class="inf-objectif-wrap"><div class="inf-objectif-label"><span>' + label + '</span><span>' + progress.pct + '%</span></div><div class="inf-objectif-bar-bg"><div class="inf-objectif-bar" style="width:' + progress.pct + '%"></div></div></div>'
+}
+
+function openInfluenceurObjectif(infId) {
+  if(window.currentPlanUser !== 'stellar') return
+  var inf = (window.influenceursData || []).find(function(i) { return i.id === infId })
+  if(!inf) return
+
+  var existing = document.getElementById('objectifPopup')
+  if(existing) existing.remove()
+
+  var progress = computeObjectifProgress(inf)
+
+  var overlay = document.createElement('div')
+  overlay.id = 'objectifPopup'
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)'
+
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(123,97,255,.2);border-radius:24px;padding:32px;width:100%;max-width:420px;position:relative'
+
+  var closeBtn = document.createElement('button')
+  closeBtn.style.cssText = 'position:absolute;top:16px;right:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#6b6b80;cursor:pointer;font-size:14px'
+  closeBtn.textContent = '✕'
+  closeBtn.onclick = function() { overlay.remove() }
+
+  var titleEl = document.createElement('h3')
+  titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:6px;color:#fff;padding-right:32px"
+  titleEl.textContent = 'Objectif — ' + inf.nom
+
+  var subEl = document.createElement('p')
+  subEl.style.cssText = 'font-size:12.5px;color:#6b6b80;margin-bottom:20px'
+  subEl.textContent = 'Définis un objectif de croissance pour suivre sa progression.'
+
+  var progressWrap = document.createElement('div')
+  if(progress) {
+    progressWrap.style.cssText = 'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;margin-bottom:20px'
+    progressWrap.innerHTML =
+      '<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:12px;color:#6b6b80">Progression actuelle</span><span style="font-size:12px;color:#a08bff;font-weight:700">' + progress.pct + '%</span></div>' +
+      '<div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin-bottom:8px"><div style="height:100%;width:' + progress.pct + '%;background:linear-gradient(90deg,#7b61ff,#00d4ff);border-radius:4px"></div></div>' +
+      '<div style="font-size:11.5px;color:#6b6b80">' + formatNumber(progress.current) + ' / ' + formatNumber(progress.target) + ' ' + (OBJECTIF_TYPE_LABELS[inf.objectif_type] || '') + '</div>'
+  }
+
+  var labelType = document.createElement('label')
+  labelType.style.cssText = 'display:block;font-size:12px;color:#6b6b80;margin-bottom:6px;font-weight:500'
+  labelType.textContent = "Type d'objectif"
+  var selectType = document.createElement('select')
+  selectType.style.cssText = 'width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif;margin-bottom:14px;cursor:pointer'
+  var typeOptions = [
+    { value:'abonnes', label:'Abonnés' },
+    { value:'vues', label:'Vues' },
+    { value:'likes', label:'Likes' }
+  ]
+  typeOptions.forEach(function(opt) {
+    var option = document.createElement('option')
+    option.value = opt.value
+    option.textContent = opt.label
+    option.style.background = '#0d0d1f'
+    if(inf.objectif_type === opt.value) option.selected = true
+    selectType.appendChild(option)
+  })
+
+  var labelVal = document.createElement('label')
+  labelVal.style.cssText = 'display:block;font-size:12px;color:#6b6b80;margin-bottom:6px;font-weight:500'
+  labelVal.textContent = 'Objectif à atteindre'
+  var inputVal = document.createElement('input')
+  inputVal.type = 'number'
+  inputVal.min = '1'
+  inputVal.placeholder = 'Ex: 10000'
+  inputVal.value = inf.objectif_valeur || ''
+  inputVal.style.cssText = 'width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif;margin-bottom:20px'
+
+  var btnWrap = document.createElement('div')
+  btnWrap.style.cssText = 'display:flex;gap:10px'
+
+  var btnCancel = document.createElement('button')
+  btnCancel.style.cssText = 'flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#a0a0b0;font-size:13px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnCancel.textContent = 'Fermer'
+  btnCancel.onclick = function() { overlay.remove() }
+
+  var btnSave = document.createElement('button')
+  btnSave.style.cssText = 'flex:2;padding:12px;border-radius:12px;background:var(--violet);border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnSave.textContent = "✓ Enregistrer l'objectif"
+  btnSave.onclick = function() {
+    var val = parseInt(inputVal.value)
+    if(!val || val <= 0) { inputVal.style.borderColor = '#ef4444'; return }
+    overlay.remove()
+    saveObjectif(infId, selectType.value, val)
+  }
+
+  btnWrap.appendChild(btnCancel)
+  btnWrap.appendChild(btnSave)
+  box.appendChild(closeBtn)
+  box.appendChild(titleEl)
+  box.appendChild(subEl)
+  if(progress) box.appendChild(progressWrap)
+  box.appendChild(labelType)
+  box.appendChild(selectType)
+  box.appendChild(labelVal)
+  box.appendChild(inputVal)
+  box.appendChild(btnWrap)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+  overlay.addEventListener('click', function(e) { if(e.target === overlay) overlay.remove() })
+}
+
+async function saveObjectif(infId, type, valeur) {
+  if(!currentUser) return
+  const { error } = await zenoDb.from('influenceurs').update({
+    objectif_type:   type,
+    objectif_valeur: valeur
+  }).eq('id', infId).eq('user_id', currentUser.id)
+  if(error) { alert('Erreur : ' + error.message); return }
+  loadInfluenceurs()
 }
 
 /* ═══ NAVIGATION VUES ═══ */

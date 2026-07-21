@@ -492,3 +492,10 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 .rs-quick-add:hover{background:rgba(123,97,255,.28);border-color:rgba(123,97,255,.55);transform:scale(1.08)}
 .rs-stat-card-scripts{flex-direction:column;align-items:stretch;gap:12px}
 .rs-stat-card-top{display:flex;align-items:center;justify-content:space-between;width:100%}
+
+/* ═══ OBJECTIF INFLUENCEUR (Stellar) ═══ */
+.inf-objectif-wrap{margin-top:10px;padding-top:10px;border-top:1px solid var(--border2)}
+.inf-objectif-label{font-size:10.5px;color:var(--muted);margin-bottom:5px;display:flex;justify-content:space-between}
+.inf-objectif-bar-bg{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.inf-objectif-bar{height:100%;background:linear-gradient(90deg,var(--violet),var(--cyan));border-radius:3px;transition:width .4s}
+.inf-objectif-empty{margin-top:10px;padding-top:10px;border-top:1px solid var(--border2);font-size:11px;color:var(--violet2);font-weight:600}
