@@ -154,8 +154,8 @@
                 <div class="th-analytics-sub">Vue d'ensemble de tes performances</div>
               </div>
               <div id="analyticsExportButtons" style="display:none;gap:8px;flex-shrink:0">
-                <button class="btn-sm btn-outline-sm" onclick="exportAnalyticsPDF()">📄 Export PDF</button>
-                <button class="btn-sm btn-outline-sm" onclick="exportAnalyticsExcel()">📊 Export Excel</button>
+                <button class="btn-sm btn-outline-sm" onclick="openExportPopup('pdf')">📄 Export PDF</button>
+                <button class="btn-sm btn-outline-sm" onclick="openExportPopup('excel')">📊 Export Excel</button>
               </div>
             </div>
           
@@ -814,6 +814,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="assets/js/videos.js"></script>
 <script src="assets/js/generation.js"></script>
 <script>
@@ -2352,23 +2353,114 @@ function formatCompareText(arr, period) {
   return (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%'
 }
 
-function exportAnalyticsPDF() {
+var NETWORK_LABELS = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
+var PERIOD_LABELS  = { 7:'7 derniers jours', 30:'Ce mois', 365:'Cette année' }
+
+/* ─── POPUP DE SÉLECTION DES RÉSEAUX ─── */
+function openExportPopup(type) {
   if(window.currentPlanUser !== 'stellar') return
+  var existing = document.getElementById('exportPopup')
+  if(existing) existing.remove()
+
+  var typeLabel = type === 'pdf' ? 'PDF' : 'Excel'
+
+  var overlay = document.createElement('div')
+  overlay.id = 'exportPopup'
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)'
+
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(123,97,255,.2);border-radius:24px;padding:32px;width:100%;max-width:400px;position:relative'
+
+  var closeBtn = document.createElement('button')
+  closeBtn.style.cssText = 'position:absolute;top:16px;right:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#6b6b80;cursor:pointer;font-size:14px'
+  closeBtn.textContent = '✕'
+  closeBtn.onclick = function() { overlay.remove() }
+
+  var titleEl = document.createElement('h3')
+  titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:6px;color:#fff;padding-right:32px"
+  titleEl.textContent = 'Export ' + typeLabel
+
+  var subEl = document.createElement('p')
+  subEl.style.cssText = 'font-size:12.5px;color:#6b6b80;margin-bottom:20px'
+  subEl.textContent = 'Choisis le ou les réseaux à inclure dans l\'export.'
+
+  var optionsWrap = document.createElement('div')
+  optionsWrap.style.cssText = 'display:flex;flex-direction:column;gap:10px;margin-bottom:24px'
+
+  var networks = ['tiktok', 'instagram', 'youtube']
+  networks.forEach(function(net) {
+    var label = document.createElement('label')
+    label.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);cursor:pointer;transition:all .2s'
+    label.onmouseover = function() { this.style.borderColor = 'rgba(123,97,255,.35)' }
+    label.onmouseout  = function() { this.style.borderColor = 'rgba(255,255,255,.07)' }
+
+    var checkbox = document.createElement('input')
+    checkbox.type = 'checkbox'
+    checkbox.value = net
+    checkbox.className = 'export-net-checkbox'
+    checkbox.style.cssText = 'width:16px;height:16px;accent-color:#7b61ff;cursor:pointer'
+
+    var span = document.createElement('span')
+    span.style.cssText = 'font-size:13.5px;font-weight:600;color:#fff'
+    span.textContent = NETWORK_LABELS[net]
+
+    label.appendChild(checkbox)
+    label.appendChild(span)
+    optionsWrap.appendChild(label)
+  })
+
+  var errEl = document.createElement('p')
+  errEl.id = 'exportPopupErr'
+  errEl.style.cssText = 'font-size:11.5px;color:#ef4444;margin-bottom:14px;display:none'
+  errEl.textContent = 'Sélectionne au moins un réseau.'
+
+  var btnWrap = document.createElement('div')
+  btnWrap.style.cssText = 'display:flex;gap:10px'
+
+  var btnCancel = document.createElement('button')
+  btnCancel.style.cssText = 'flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#a0a0b0;font-size:13px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnCancel.textContent = 'Fermer'
+  btnCancel.onclick = function() { overlay.remove() }
+
+  var btnConfirm = document.createElement('button')
+  btnConfirm.style.cssText = 'flex:2;padding:12px;border-radius:12px;background:var(--violet);border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif'
+  btnConfirm.textContent = '✓ Confirmer'
+  btnConfirm.onclick = function() {
+    var selected = Array.prototype.slice.call(document.querySelectorAll('.export-net-checkbox:checked')).map(function(c) { return c.value })
+    if(selected.length === 0) {
+      document.getElementById('exportPopupErr').style.display = 'block'
+      return
+    }
+    overlay.remove()
+    runExport(type, selected)
+  }
+
+  btnWrap.appendChild(btnCancel)
+  btnWrap.appendChild(btnConfirm)
+  box.appendChild(closeBtn)
+  box.appendChild(titleEl)
+  box.appendChild(subEl)
+  box.appendChild(optionsWrap)
+  box.appendChild(errEl)
+  box.appendChild(btnWrap)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+  overlay.addEventListener('click', function(e) { if(e.target === overlay) overlay.remove() })
+}
+
+/* ─── GÉNÉRATION DES FICHIERS (blobs) ─── */
+function generatePDFBlob(net, period) {
   var jsPDFClass = window.jspdf.jsPDF
-  var doc     = new jsPDFClass()
-  var net     = analyticsState.network
-  var period  = analyticsState.period
-  var d       = analyticsData[net]
-  var netLabels    = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
-  var periodLabels = { 7:'7 derniers jours', 30:'Ce mois', 365:'Cette année' }
+  var doc = new jsPDFClass()
+  var d   = analyticsData[net]
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
   doc.text('Zeno — Rapport Analytics', 14, 20)
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(11)
-  doc.text('Réseau : ' + (netLabels[net] || net), 14, 30)
-  doc.text('Période : ' + (periodLabels[period] || period), 14, 37)
+  doc.text('Réseau : ' + (NETWORK_LABELS[net] || net), 14, 30)
+  doc.text('Période : ' + (PERIOD_LABELS[period] || period), 14, 37)
   doc.text('Généré le : ' + new Date().toLocaleDateString('fr-FR'), 14, 44)
 
   doc.autoTable({
@@ -2395,21 +2487,15 @@ function exportAnalyticsPDF() {
     ]
   })
 
-  doc.save('zeno-analytics-' + net + '-' + period + 'j.pdf')
+  return { blob: doc.output('blob'), filename: 'zeno-analytics-' + net + '-' + period + 'j.pdf' }
 }
 
-function exportAnalyticsExcel() {
-  if(window.currentPlanUser !== 'stellar') return
-  var net     = analyticsState.network
-  var period  = analyticsState.period
-  var d       = analyticsData[net]
-  var netLabels    = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
-  var periodLabels = { 7:'7 derniers jours', 30:'Ce mois', 365:'Cette année' }
-
+function generateExcelBlob(net, period) {
+  var d = analyticsData[net]
   var rows = [
     ['Zeno — Rapport Analytics'],
-    ['Réseau', netLabels[net] || net],
-    ['Période', periodLabels[period] || period],
+    ['Réseau', NETWORK_LABELS[net] || net],
+    ['Période', PERIOD_LABELS[period] || period],
     ['Généré le', new Date().toLocaleDateString('fr-FR')],
     [],
     ['Indicateur', 'Total', 'Variation vs période précédente'],
@@ -2426,7 +2512,39 @@ function exportAnalyticsExcel() {
   var ws = XLSX.utils.aoa_to_sheet(rows)
   var wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Analytics')
-  XLSX.writeFile(wb, 'zeno-analytics-' + net + '-' + period + 'j.xlsx')
+  var arrayBuffer = XLSX.write(wb, { type: 'array', bookType: 'xlsx' })
+  var blob = new Blob([arrayBuffer], { type: 'application/octet-stream' })
+  return { blob: blob, filename: 'zeno-analytics-' + net + '-' + period + 'j.xlsx' }
+}
+
+/* ─── TÉLÉCHARGEMENT (direct ou ZIP) ─── */
+function downloadBlob(blob, filename) {
+  var url = URL.createObjectURL(blob)
+  var a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  setTimeout(function() { URL.revokeObjectURL(url) }, 1000)
+}
+
+function runExport(type, networks) {
+  var period = analyticsState.period
+  var files = networks.map(function(net) {
+    return type === 'pdf' ? generatePDFBlob(net, period) : generateExcelBlob(net, period)
+  })
+
+  if(files.length === 1) {
+    downloadBlob(files[0].blob, files[0].filename)
+    return
+  }
+
+  var zip = new JSZip()
+  files.forEach(function(f) { zip.file(f.filename, f.blob) })
+  zip.generateAsync({ type: 'blob' }).then(function(content) {
+    downloadBlob(content, 'zeno-analytics-export-' + type + '.zip')
+  })
 }
 
 function renderChart(data, period) {
