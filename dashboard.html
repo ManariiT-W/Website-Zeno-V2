@@ -148,8 +148,16 @@
           <!-- 3 KPI -->
           <!-- BLOC 1 — DONNÉES ANALYTICS -->
           <div class="th-analytics-left" style="margin-bottom:20px">
-            <div class="th-analytics-title">Données Analytics</div>
-            <div class="th-analytics-sub">Vue d'ensemble de tes performances</div>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+              <div>
+                <div class="th-analytics-title">Données Analytics</div>
+                <div class="th-analytics-sub">Vue d'ensemble de tes performances</div>
+              </div>
+              <div id="analyticsExportButtons" style="display:none;gap:8px;flex-shrink:0">
+                <button class="btn-sm btn-outline-sm" onclick="exportAnalyticsPDF()">📄 Export PDF</button>
+                <button class="btn-sm btn-outline-sm" onclick="exportAnalyticsExcel()">📊 Export Excel</button>
+              </div>
+            </div>
           
             <div class="analytics-kpi-row">
               <div class="analytics-kpi-card">
@@ -803,6 +811,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="assets/js/videos.js"></script>
 <script src="assets/js/generation.js"></script>
 <script>
@@ -2253,15 +2264,18 @@ function initAnalytics() {
   var plan = window.currentPlanUser || 'starter'
   var upgradeBanner  = document.getElementById('analyticsUpgradeBanner')
   var analyticsContent = document.getElementById('analyticsContent')
+  var exportBtns = document.getElementById('analyticsExportButtons')
 
   if(plan === 'starter') {
     if(upgradeBanner)    upgradeBanner.style.display    = 'block'
     if(analyticsContent) analyticsContent.style.display = 'none'
+    if(exportBtns)        exportBtns.style.display       = 'none'
     return
   }
 
   if(upgradeBanner)    upgradeBanner.style.display    = 'none'
   if(analyticsContent) analyticsContent.style.display = 'block'
+  if(exportBtns)        exportBtns.style.display       = (plan === 'stellar') ? 'flex' : 'none'
 
   renderAnalytics()
 }
@@ -2329,6 +2343,90 @@ function updateKpiCompare(elId, arr, period) {
   var cls    = isUp ? 'kpi-compare-up' : 'kpi-compare-down'
   el.className   = 'analytics-kpi-compare ' + cls
   el.textContent = arrow + ' ' + Math.abs(pct).toFixed(1) + '% vs période précédente'
+}
+
+/* ═══ EXPORT PDF / EXCEL — ANALYTICS GLOBAL (Stellar) ═══ */
+function formatCompareText(arr, period) {
+  var pct = calculateCompare(arr, period)
+  if(pct === null) return '—'
+  return (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%'
+}
+
+function exportAnalyticsPDF() {
+  if(window.currentPlanUser !== 'stellar') return
+  var jsPDFClass = window.jspdf.jsPDF
+  var doc     = new jsPDFClass()
+  var net     = analyticsState.network
+  var period  = analyticsState.period
+  var d       = analyticsData[net]
+  var netLabels    = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
+  var periodLabels = { 7:'7 derniers jours', 30:'Ce mois', 365:'Cette année' }
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(18)
+  doc.text('Zeno — Rapport Analytics', 14, 20)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(11)
+  doc.text('Réseau : ' + (netLabels[net] || net), 14, 30)
+  doc.text('Période : ' + (periodLabels[period] || period), 14, 37)
+  doc.text('Généré le : ' + new Date().toLocaleDateString('fr-FR'), 14, 44)
+
+  doc.autoTable({
+    startY: 52,
+    head: [['Indicateur', 'Total', 'Variation vs période précédente']],
+    body: [
+      ['Abonnés totaux',  formatNumber(d.abonnes_total),  formatCompareText(d.evolution.abonnes,  period)],
+      ['Likes totaux',    formatNumber(d.likes_total),    formatCompareText(d.evolution.likes,    period)],
+      ['Partages totaux', formatNumber(d.partages_total), formatCompareText(d.evolution.partages, period)]
+    ]
+  })
+
+  var y2 = doc.lastAutoTable.finalY + 12
+  doc.setFont('helvetica', 'bold')
+  doc.text('Résumé sur la période sélectionnée', 14, y2)
+
+  doc.autoTable({
+    startY: y2 + 6,
+    head: [['Métrique', 'Gagné sur la période']],
+    body: [
+      ['Abonnés gagnés', '+' + formatNumber(d.evolution.abonnes.slice(-period).reduce(function(a,b){return a+b},0))],
+      ['Likes gagnés',   '+' + formatNumber(d.evolution.likes.slice(-period).reduce(function(a,b){return a+b},0))],
+      ['Partages gagnés','+' + formatNumber(d.evolution.partages.slice(-period).reduce(function(a,b){return a+b},0))]
+    ]
+  })
+
+  doc.save('zeno-analytics-' + net + '-' + period + 'j.pdf')
+}
+
+function exportAnalyticsExcel() {
+  if(window.currentPlanUser !== 'stellar') return
+  var net     = analyticsState.network
+  var period  = analyticsState.period
+  var d       = analyticsData[net]
+  var netLabels    = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
+  var periodLabels = { 7:'7 derniers jours', 30:'Ce mois', 365:'Cette année' }
+
+  var rows = [
+    ['Zeno — Rapport Analytics'],
+    ['Réseau', netLabels[net] || net],
+    ['Période', periodLabels[period] || period],
+    ['Généré le', new Date().toLocaleDateString('fr-FR')],
+    [],
+    ['Indicateur', 'Total', 'Variation vs période précédente'],
+    ['Abonnés totaux',  d.abonnes_total,  formatCompareText(d.evolution.abonnes,  period)],
+    ['Likes totaux',    d.likes_total,    formatCompareText(d.evolution.likes,    period)],
+    ['Partages totaux', d.partages_total, formatCompareText(d.evolution.partages, period)],
+    [],
+    ['Métrique', 'Gagné sur la période'],
+    ['Abonnés gagnés', d.evolution.abonnes.slice(-period).reduce(function(a,b){return a+b},0)],
+    ['Likes gagnés',   d.evolution.likes.slice(-period).reduce(function(a,b){return a+b},0)],
+    ['Partages gagnés',d.evolution.partages.slice(-period).reduce(function(a,b){return a+b},0)]
+  ]
+
+  var ws = XLSX.utils.aoa_to_sheet(rows)
+  var wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Analytics')
+  XLSX.writeFile(wb, 'zeno-analytics-' + net + '-' + period + 'j.xlsx')
 }
 
 function renderChart(data, period) {
