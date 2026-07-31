@@ -1172,6 +1172,7 @@ function openInfluenceurObjectif(infId) {
   overlay.addEventListener('click', function(e) { if(e.target === overlay) overlay.remove() })
 }
 
+
 async function saveObjectif(infId, type, valeur) {
   if(!currentUser) return
   const { error } = await zenoDb.from('influenceurs').update({
