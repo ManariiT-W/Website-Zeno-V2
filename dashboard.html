@@ -11,10 +11,6 @@
 </head>
 <body>
 
-<!-- ═══ tESTE ═══ -->
- 
-<!-- ═══ tESTE ═══ -->
-
 <!-- ═══ LOGIN PAGE ═══ -->
 <div class="login-page" id="loginPage">
   <div class="login-box au">
@@ -759,6 +755,37 @@
           <button class="btn-sm btn-violet" onclick="window.location.href='index.html#tarifs'">Changer de plan</button>
         </div>
 
+        <!-- Rapports automatiques (Stellar) -->
+        <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px">
+          <h3 style="font-size:16px;font-weight:700;margin-bottom:6px">Rapports automatiques</h3>
+
+          <div id="rapportsUpgradeBanner" style="display:none">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Reçois automatiquement un rapport de tes performances par email. Disponible à partir du plan <span style="color:var(--gold);font-weight:700">Stellar</span>.</p>
+            <button class="btn-sm btn-violet" onclick="window.location.href='index.html#tarifs'">Passer à Stellar →</button>
+          </div>
+
+          <div id="rapportsFormWrap" style="display:none">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Reçois automatiquement un rapport de tes performances par email.</p>
+
+            <div class="field">
+              <label>Fréquence d'envoi</label>
+              <select id="param-rapport-freq">
+                <option value="aucun">Désactivé</option>
+                <option value="hebdo">Hebdomadaire</option>
+                <option value="mensuel">Mensuel</option>
+              </select>
+            </div>
+
+            <div class="field" style="margin-top:14px">
+              <label>Adresse email de destination</label>
+              <input type="email" id="param-rapport-email" placeholder="ton@email.com (laisse vide pour utiliser ton email de compte)">
+              <div class="field-err" id="err-rapport-email">Adresse email invalide</div>
+            </div>
+
+            <button class="btn-sm btn-violet" style="margin-top:16px" onclick="saveRapportsSettings()">Enregistrer</button>
+          </div>
+        </div>
+
         <!-- Liaison réseaux sociaux -->
         <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px">
           <h3 style="font-size:16px;font-weight:700;margin-bottom:6px">Liaison réseaux sociaux</h3>
@@ -918,6 +945,18 @@ async function loadUserData() {
     document.getElementById('param-prenom').value   = prenom
     document.getElementById('param-email').value    = currentUser.email
     document.getElementById('param-plan-name').textContent = plan.charAt(0).toUpperCase() + plan.slice(1)
+
+    var rapportsBanner = document.getElementById('rapportsUpgradeBanner')
+    var rapportsForm    = document.getElementById('rapportsFormWrap')
+    if(plan === 'stellar') {
+      rapportsBanner.style.display = 'none'
+      rapportsForm.style.display   = 'block'
+      document.getElementById('param-rapport-freq').value  = data.rapport_frequence || 'aucun'
+      document.getElementById('param-rapport-email').value = data.rapport_email || ''
+    } else {
+      rapportsBanner.style.display = 'block'
+      rapportsForm.style.display   = 'none'
+    }
 
     // Adapter le dashboard selon le plan
     applyPlanRestrictions(plan)
@@ -1396,6 +1435,26 @@ async function saveParams() {
   document.getElementById('userName').textContent = prenom
   document.getElementById('userAv').textContent   = prenom.charAt(0).toUpperCase()
   alert('Profil mis à jour ✓')
+}
+
+async function saveRapportsSettings() {
+  if(!currentUser) return
+  var freq  = document.getElementById('param-rapport-freq').value
+  var email = document.getElementById('param-rapport-email').value.trim()
+
+  if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    document.getElementById('err-rapport-email').classList.add('show')
+    return
+  }
+  document.getElementById('err-rapport-email').classList.remove('show')
+
+  const { error } = await zenoDb.from('users').update({
+    rapport_frequence: freq,
+    rapport_email:     email || null
+  }).eq('id', currentUser.id)
+
+  if(error) { alert('Erreur : ' + error.message); return }
+  alert('Préférences de rapport mises à jour ✓')
 }
 
 /* RESEAUX SOCIAUX */
