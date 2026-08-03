@@ -48,7 +48,7 @@ export default async function handler(req, res) {
               <p>Bonjour ${user.prenom || ''},</p>
               <p>Voici un résumé de tes performances sur la période : <b>${periode}</b>.</p>
               <p style="color:#a0a0b0;font-size:13px">Connecte-toi à ton dashboard Zeno pour voir le détail complet et exporter le rapport en PDF/Excel.</p>
-              <a href="https://TON-DOMAINE-VERCEL.vercel.app/dashboard.html" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#7b61ff;color:#fff;text-decoration:none;border-radius:8px">Voir mon dashboard</a>
+              <a href="https://epzspeklhizhbckwzqeh.supabase.co/dashboard.html" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#7b61ff;color:#fff;text-decoration:none;border-radius:8px">Voir mon dashboard</a>
             </div>
           `
         })
