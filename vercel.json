@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/send-report",
+      "schedule": "0 8 * * *"
+    }
+  ]
+}
