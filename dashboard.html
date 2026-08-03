@@ -312,6 +312,13 @@
     <div class="view" id="view-influenceurs">
       <div class="section-head">
         <div class="section-head-title">Tous mes influenceurs</div>
+        <div id="dossiersControls" style="display:none;align-items:center;gap:10px">
+          <select id="filtreDossier" onchange="filtrerParDossier()" class="historique-select">
+            <option value="all">Tous les dossiers</option>
+            <option value="none">Sans dossier</option>
+          </select>
+          <button class="btn-sm btn-outline-sm" onclick="openDossiersManager()">📁 Gérer mes dossiers</button>
+        </div>
       </div>
       <div class="inf-grid" id="allInfGrid">
         <div class="inf-card inf-card-add" onclick="showView('creation')">
@@ -1032,6 +1039,37 @@ async function loadInfluenceurs() {
 }
 
 function renderInfluenceurs(list) {
+  var allInfluenceursData = []
+var dossiersData = []
+
+function renderInfluenceurs(list) {
+  allInfluenceursData = list
+  var plan = window.currentPlanUser || 'starter'
+
+  var dossiersControls = document.getElementById('dossiersControls')
+  if(dossiersControls) dossiersControls.style.display = (plan === 'stellar') ? 'flex' : 'none'
+
+  if(plan === 'stellar') loadDossiers()
+
+  applyInfluenceursFilter()
+}
+
+function applyInfluenceursFilter() {
+  var filtre = document.getElementById('filtreDossier') ? document.getElementById('filtreDossier').value : 'all'
+  var filtered = allInfluenceursData
+  if(filtre === 'none') {
+    filtered = allInfluenceursData.filter(function(inf) { return !inf.dossier_id })
+  } else if(filtre !== 'all') {
+    filtered = allInfluenceursData.filter(function(inf) { return inf.dossier_id === filtre })
+  }
+  buildInfluenceursHTML(filtered)
+}
+
+function filtrerParDossier() {
+  applyInfluenceursFilter()
+}
+
+function buildInfluenceursHTML(list) {
   var niches = {mode:'Mode & Lifestyle',fitness:'Fitness',tech:'Tech',food:'Cuisine',gaming:'Gaming',travel:'Voyage',business:'Business',beauty:'Beauté'}
   var emojis = {mode:'👗',fitness:'💪',tech:'💻',food:'🍕',gaming:'🎮',travel:'✈️',business:'💼',beauty:'💄'}
   var l    = window.planLimits    || { influenceurs:1 }
@@ -1040,7 +1078,7 @@ function renderInfluenceurs(list) {
   window.influenceursData = list
 
   var addCardHtml
-  if(list.length < l.influenceurs) {
+  if(allInfluenceursData.length < l.influenceurs) {
     addCardHtml = '<div class="inf-card inf-card-add" onclick="showView(\'creation\')"><div class="inf-card-add-icon">+</div><div class="inf-card-add-text">Créer mon influenceur</div></div>'
   } else {
     addCardHtml = '<div class="inf-card inf-card-add" onclick="showUpgradeMessage(' + l.influenceurs + ')" style="border-color:rgba(201,168,76,.3)"><div class="inf-card-add-icon" style="background:rgba(201,168,76,.1)">🔓</div><div class="inf-card-add-text" style="color:var(--gold)">Upgrade pour plus</div></div>'
@@ -1049,11 +1087,125 @@ function renderInfluenceurs(list) {
   var html = addCardHtml + list.map(function(inf) {
     var clickAttr     = plan === 'stellar' ? ' onclick="openInfluenceurObjectif(\'' + inf.id + '\')" style="cursor:pointer"' : ''
     var objectifBlock = plan === 'stellar' ? buildObjectifMiniBar(inf) : ''
-    return '<div class="inf-card"' + clickAttr + '><div class="inf-card-img"><span style="font-size:48px">' + (emojis[inf.niche]||'🤖') + '</span><span class="inf-card-platform" style="color:var(--cyan)">' + (inf.reseau||'') + '</span></div><div class="inf-card-body"><div class="inf-card-name">' + inf.nom + '</div><div class="inf-card-niche">' + (niches[inf.niche]||inf.niche) + '</div><div class="inf-card-stats"><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">abonnés</div></div><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">vidéos</div></div></div>' + objectifBlock + '</div></div>'
+    var dossierBadge  = ''
+    if(plan === 'stellar' && inf.dossier_id) {
+      var d = dossiersData.find(function(x) { return x.id === inf.dossier_id })
+      if(d) dossierBadge = '<span class="inf-card-platform" style="right:auto;left:10px;background:rgba(123,97,255,.6)">📁 ' + d.nom + '</span>'
+    }
+    return '<div class="inf-card"' + clickAttr + '><div class="inf-card-img"><span style="font-size:48px">' + (emojis[inf.niche]||'🤖') + '</span><span class="inf-card-platform" style="color:var(--cyan)">' + (inf.reseau||'') + '</span>' + dossierBadge + '</div><div class="inf-card-body"><div class="inf-card-name">' + inf.nom + '</div><div class="inf-card-niche">' + (niches[inf.niche]||inf.niche) + '</div><div class="inf-card-stats"><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">abonnés</div></div><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">vidéos</div></div></div>' + objectifBlock + '</div></div>'
   }).join('')
 
-  document.getElementById('homeInfGrid').innerHTML = html
-  document.getElementById('allInfGrid').innerHTML  = html
+  document.getElementById('homeInfGrid').innerHTML = addCardHtml + allInfluenceursData.slice(0, 20).map(function(inf) {
+    var clickAttr2     = plan === 'stellar' ? ' onclick="openInfluenceurObjectif(\'' + inf.id + '\')" style="cursor:pointer"' : ''
+    var objectifBlock2 = plan === 'stellar' ? buildObjectifMiniBar(inf) : ''
+    return '<div class="inf-card"' + clickAttr2 + '><div class="inf-card-img"><span style="font-size:48px">' + (emojis[inf.niche]||'🤖') + '</span><span class="inf-card-platform" style="color:var(--cyan)">' + (inf.reseau||'') + '</span></div><div class="inf-card-body"><div class="inf-card-name">' + inf.nom + '</div><div class="inf-card-niche">' + (niches[inf.niche]||inf.niche) + '</div><div class="inf-card-stats"><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">abonnés</div></div><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">vidéos</div></div></div>' + objectifBlock2 + '</div></div>'
+  }).join('')
+
+  document.getElementById('allInfGrid').innerHTML = html
+}
+
+/* ═══ GESTION DES DOSSIERS (Stellar) ═══ */
+async function loadDossiers() {
+  if(!currentUser) return
+  const { data } = await zenoDb.from('dossiers').select('*').eq('user_id', currentUser.id).order('nom')
+  dossiersData = data || []
+
+  var select = document.getElementById('filtreDossier')
+  if(select) {
+    var currentVal = select.value
+    select.innerHTML = '<option value="all">Tous les dossiers</option><option value="none">Sans dossier</option>' +
+      dossiersData.map(function(d) { return '<option value="' + d.id + '">' + d.nom + '</option>' }).join('')
+    select.value = currentVal
+  }
+}
+
+function openDossiersManager() {
+  var existing = document.getElementById('dossiersManagerPopup')
+  if(existing) existing.remove()
+
+  var overlay = document.createElement('div')
+  overlay.id = 'dossiersManagerPopup'
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)'
+
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(123,97,255,.2);border-radius:24px;padding:32px;width:100%;max-width:440px;position:relative;max-height:80vh;display:flex;flex-direction:column'
+
+  var closeBtn = document.createElement('button')
+  closeBtn.style.cssText = 'position:absolute;top:16px;right:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#6b6b80;cursor:pointer;font-size:14px'
+  closeBtn.textContent = '✕'
+  closeBtn.onclick = function() { overlay.remove() }
+
+  var titleEl = document.createElement('h3')
+  titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:20px;color:#fff;padding-right:32px"
+  titleEl.textContent = 'Gérer mes dossiers'
+
+  var addWrap = document.createElement('div')
+  addWrap.style.cssText = 'display:flex;gap:8px;margin-bottom:20px'
+  var inputNew = document.createElement('input')
+  inputNew.type = 'text'
+  inputNew.placeholder = 'Nom du nouveau dossier (ex: Nike)'
+  inputNew.style.cssText = 'flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:13px;outline:none;font-family:\'DM Sans\',sans-serif'
+  var btnAdd = document.createElement('button')
+  btnAdd.style.cssText = 'padding:10px 18px;border-radius:10px;background:#7b61ff;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer'
+  btnAdd.textContent = '+ Ajouter'
+  btnAdd.onclick = function() {
+    var nom = inputNew.value.trim()
+    if(!nom) return
+    createDossier(nom, overlay)
+  }
+  addWrap.appendChild(inputNew)
+  addWrap.appendChild(btnAdd)
+
+  var listWrap = document.createElement('div')
+  listWrap.style.cssText = 'overflow-y:auto;display:flex;flex-direction:column;gap:8px;flex:1'
+
+  if(dossiersData.length === 0) {
+    var emptyEl = document.createElement('div')
+    emptyEl.style.cssText = 'text-align:center;padding:24px;color:#6b6b80;font-size:13px'
+    emptyEl.textContent = 'Aucun dossier créé pour le moment.'
+    listWrap.appendChild(emptyEl)
+  } else {
+    dossiersData.forEach(function(d) {
+      var count = allInfluenceursData.filter(function(inf) { return inf.dossier_id === d.id }).length
+      var row = document.createElement('div')
+      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px'
+      var nameEl = document.createElement('div')
+      nameEl.innerHTML = '<span style="font-size:13px;font-weight:600;color:#fff">' + d.nom + '</span><span style="font-size:11px;color:#6b6b80;margin-left:8px">' + count + ' influenceur' + (count > 1 ? 's' : '') + '</span>'
+      var delBtn = document.createElement('button')
+      delBtn.style.cssText = 'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:13px'
+      delBtn.textContent = '🗑'
+      delBtn.onclick = function() { deleteDossier(d.id, overlay) }
+      row.appendChild(nameEl)
+      row.appendChild(delBtn)
+      listWrap.appendChild(row)
+    })
+  }
+
+  box.appendChild(closeBtn)
+  box.appendChild(titleEl)
+  box.appendChild(addWrap)
+  box.appendChild(listWrap)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+  overlay.addEventListener('click', function(e) { if(e.target === overlay) overlay.remove() })
+}
+
+async function createDossier(nom, overlay) {
+  if(!currentUser) return
+  const { error } = await zenoDb.from('dossiers').insert({ user_id: currentUser.id, nom: nom })
+  if(error) { alert('Erreur : ' + error.message); return }
+  await loadDossiers()
+  overlay.remove()
+  openDossiersManager()
+}
+
+async function deleteDossier(dossierId, overlay) {
+  if(!confirm('Supprimer ce dossier ? Les influenceurs associés repasseront en "Sans dossier".')) return
+  await zenoDb.from('dossiers').delete().eq('id', dossierId).eq('user_id', currentUser.id)
+  await loadDossiers()
+  loadInfluenceurs()
+  overlay.remove()
+  openDossiersManager()
 }
 
 async function loadHomeVideos() {
@@ -1152,6 +1304,26 @@ function openInfluenceurObjectif(infId) {
       '<div style="font-size:11.5px;color:#6b6b80">' + formatNumber(progress.current) + ' / ' + formatNumber(progress.target) + ' ' + (OBJECTIF_TYPE_LABELS[inf.objectif_type] || '') + '</div>'
   }
 
+  var labelDossier = document.createElement('label')
+  labelDossier.style.cssText = 'display:block;font-size:12px;color:#6b6b80;margin-bottom:6px;font-weight:500'
+  labelDossier.textContent = 'Dossier / Client'
+  var selectDossier = document.createElement('select')
+  selectDossier.style.cssText = 'width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif;margin-bottom:18px;cursor:pointer'
+  var optNoneDossier = document.createElement('option')
+  optNoneDossier.value = ''
+  optNoneDossier.textContent = 'Aucun dossier'
+  optNoneDossier.style.background = '#0d0d1f'
+  if(!inf.dossier_id) optNoneDossier.selected = true
+  selectDossier.appendChild(optNoneDossier)
+  dossiersData.forEach(function(d) {
+    var opt = document.createElement('option')
+    opt.value = d.id
+    opt.textContent = d.nom
+    opt.style.background = '#0d0d1f'
+    if(inf.dossier_id === d.id) opt.selected = true
+    selectDossier.appendChild(opt)
+  })
+
   var labelType = document.createElement('label')
   labelType.style.cssText = 'display:block;font-size:12px;color:#6b6b80;margin-bottom:6px;font-weight:500'
   labelType.textContent = "Type d'objectif"
@@ -1196,7 +1368,7 @@ function openInfluenceurObjectif(infId) {
     var val = parseInt(inputVal.value)
     if(!val || val <= 0) { inputVal.style.borderColor = '#ef4444'; return }
     overlay.remove()
-    saveObjectif(infId, selectType.value, val)
+    saveObjectif(infId, selectType.value, val, selectDossier.value || null)
   }
 
   btnWrap.appendChild(btnCancel)
@@ -1205,6 +1377,8 @@ function openInfluenceurObjectif(infId) {
   box.appendChild(titleEl)
   box.appendChild(subEl)
   if(progress) box.appendChild(progressWrap)
+  box.appendChild(labelDossier)
+  box.appendChild(selectDossier)
   box.appendChild(labelType)
   box.appendChild(selectType)
   box.appendChild(labelVal)
@@ -1215,11 +1389,12 @@ function openInfluenceurObjectif(infId) {
   overlay.addEventListener('click', function(e) { if(e.target === overlay) overlay.remove() })
 }
 
-async function saveObjectif(infId, type, valeur) {
+async function saveObjectif(infId, type, valeur, dossierId) {
   if(!currentUser) return
   const { error } = await zenoDb.from('influenceurs').update({
     objectif_type:   type,
-    objectif_valeur: valeur
+    objectif_valeur: valeur,
+    dossier_id:      dossierId
   }).eq('id', infId).eq('user_id', currentUser.id)
   if(error) { alert('Erreur : ' + error.message); return }
   loadInfluenceurs()
