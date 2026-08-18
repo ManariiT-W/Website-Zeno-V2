@@ -12,8 +12,6 @@
 <body>
 
 <!-- ═══ LOGIN PAGE ═══ -->
-
-<!-- ═══ LOGIN PAGE ═══ -->
 <div class="login-page" id="loginPage">
   <div class="login-box au">
     <div class="login-logo">✦ ZENO</div>
@@ -104,6 +102,7 @@
   <div class="rs-divider"></div>
 
   <div class="rs-link" onclick="closeRightSidebar(); showView('historique')">Historique</div>
+  <div class="rs-link" id="rsLinkAuditTrail" style="display:none" onclick="closeRightSidebar(); showView('audittrail')">Journal d'activité</div>
   <div class="rs-link" onclick="closeRightSidebar(); showView('parametres')">Paramètres</div>
 
   <div class="rs-bottom">
@@ -745,6 +744,22 @@
     
     </div>
 
+    <!-- ═══ VUE JOURNAL D'ACTIVITÉ (Stellar) ═══ -->
+    <div class="view" id="view-audittrail">
+      <div class="section-head">
+        <div class="section-head-title">Journal d'activité</div>
+        <span id="auditLogsCount" style="font-size:12px;color:var(--muted);font-weight:500">0 action enregistrée</span>
+      </div>
+
+      <div id="auditLogsEmpty" style="display:none;text-align:center;padding:60px 20px">
+        <div style="font-size:48px;margin-bottom:16px;opacity:.4">📜</div>
+        <div style="font-size:16px;font-weight:700;color:var(--muted2);margin-bottom:8px">Aucune action enregistrée</div>
+        <div style="font-size:13px;color:var(--muted)">Les actions importantes sur ton compte apparaîtront ici.</div>
+      </div>
+
+      <div id="auditLogsList" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+
     <!-- ═══ VUE PARAMÈTRES ═══ -->
     <div class="view" id="view-parametres">
       <div style="max-width:560px;display:flex;flex-direction:column;gap:16px">
@@ -1004,6 +1019,10 @@ function applyPlanRestrictions(plan) {
   var apiNav = document.getElementById('nav-api')
   if(apiNav) apiNav.style.display = l.api ? 'flex' : 'none'
 
+  // Journal d'activité (Stellar uniquement)
+  var auditLink = document.getElementById('rsLinkAuditTrail')
+  if(auditLink) auditLink.style.display = (plan === 'stellar') ? 'flex' : 'none'
+
   // Mettre à jour le titre du dashboard selon le plan
   var planLabels = { starter:'Starter', nova:'Nova ⚡', stellar:'Stellar ✦' }
   document.getElementById('userPlan').textContent = 'Plan ' + (planLabels[plan] || plan)
@@ -1209,6 +1228,69 @@ async function deleteDossier(dossierId, overlay) {
   openDossiersManager()
 }
 
+/* ═══ AUDIT TRAIL (Stellar) ═══ */
+async function logAction(actionType, description) {
+  if(!currentUser) return
+  if(window.currentPlanUser !== 'stellar') return
+  await zenoDb.from('audit_logs').insert({
+    user_id:     currentUser.id,
+    action_type: actionType,
+    description: description
+  })
+}
+
+var AUDIT_ICONS = {
+  influenceur_cree:    '🤖',
+  video_supprimee:     '🎬',
+  script_cree:         '📝',
+  script_modifie:      '✏️',
+  script_supprime:     '🗑',
+  dossier_cree:        '📁',
+  dossier_supprime:    '📁',
+  objectif_defini:     '🎯',
+  reseau_lie:          '🔗',
+  reseau_delie:        '🔗'
+}
+
+async function loadAuditLogs() {
+  if(!currentUser) return
+  var empty = document.getElementById('auditLogsEmpty')
+  var list  = document.getElementById('auditLogsList')
+  var count = document.getElementById('auditLogsCount')
+  if(!empty || !list) return
+
+  const { data } = await zenoDb
+    .from('audit_logs')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  var logs = data || []
+  var label = logs.length === 0 ? '0 action enregistrée' :
+              logs.length === 1 ? '1 action enregistrée' :
+              logs.length + ' actions enregistrées'
+  if(count) count.textContent = label
+
+  if(logs.length === 0) {
+    empty.style.display = 'block'
+    list.style.display  = 'none'
+    return
+  }
+
+  empty.style.display = 'none'
+  list.style.display  = 'flex'
+
+  var html = logs.map(function(log) {
+    var date = new Date(log.created_at).toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
+    var heure = new Date(log.created_at).toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' })
+    var icon = AUDIT_ICONS[log.action_type] || '•'
+    return '<div class="historique-card" style="cursor:default"><div class="historique-card-icon" style="background:rgba(123,97,255,.1)">' + icon + '</div><div class="historique-card-body"><div class="historique-card-title">' + log.description + '</div><div class="historique-card-meta">' + date + ' à ' + heure + '</div></div></div>'
+  }).join('')
+
+  list.innerHTML = html
+}
+
 async function loadHomeVideos() {
   if(!currentUser) return
   var wrap = document.getElementById('homeVideosWrap')
@@ -1411,7 +1493,8 @@ var viewTitles = {
   parametres:  { title:'Paramètres',                sub:'Gérer ton compte' },
   historique: { title:'Historique des publications', sub:'Toutes tes publications passées' },
   messages: { title:'Messages', sub:'Messages de tes abonnés' },
-  scripts:    { title:'Bibliothèque de scripts',     sub:'Crée et réutilise tes meilleurs scripts' }
+  scripts:    { title:'Bibliothèque de scripts',     sub:'Crée et réutilise tes meilleurs scripts' },
+  audittrail: { title:"Journal d'activité",          sub:'Historique des actions importantes sur ton compte' }
 }
 function showView(id) {
   // Vérifier limite influenceurs avant d'ouvrir la création
@@ -1429,6 +1512,7 @@ function _showView(id) {
   if(id === 'planning')   { setTimeout(loadPlanning, 100); }
   if(id === 'historique') { setTimeout(loadHistorique, 100); }
   if(id === 'scripts')    { setTimeout(loadScripts, 100); }
+  if(id === 'audittrail') { setTimeout(loadAuditLogs, 100); }
   document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active') })
   document.querySelectorAll('.topnav-item').forEach(function(i) { i.classList.remove('active') })
   document.getElementById('view-' + id).classList.add('active')
