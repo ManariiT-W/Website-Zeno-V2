@@ -1,0 +1,17 @@
+/* ═══ POPUP DE CONFIRMATION GÉNÉRIQUE ═══ */
+.popup-confirm-overlay{position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.88);backdrop-filter:blur(6px)}
+.popup-confirm-box{border-radius:24px;padding:36px;width:100%;max-width:400px;text-align:center;background:#0d0d1f}
+.popup-confirm-box.danger{border:1px solid rgba(239,68,68,.2)}
+.popup-confirm-box.neutral{border:1px solid rgba(123,97,255,.2)}
+.popup-confirm-icon{font-size:44px;margin-bottom:16px}
+.popup-confirm-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:10px;color:#fff}
+.popup-confirm-msg{font-size:13px;color:#6b6b80;line-height:1.65;margin-bottom:8px}
+.popup-confirm-msg2{font-size:12px;margin-bottom:24px;font-weight:600}
+.popup-confirm-msg2.danger{color:#ef4444}
+.popup-confirm-msg2.info{color:#a08bff}
+.popup-confirm-btns{display:flex;gap:10px}
+.popup-confirm-btn-cancel{flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#a0a0b0;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.popup-confirm-btn-confirm{flex:1;padding:12px;border-radius:12px;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
+.popup-confirm-btn-confirm.danger{background:#ef4444}
+.popup-confirm-btn-confirm.neutral{background:var(--violet)}
+

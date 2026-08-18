@@ -8,6 +8,7 @@
 <meta name="supabase-key" content="sb_publishable_qADklsiqEqkKfqmxm8RkWQ_n7jw-Gtl">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/dashboard.css">
+<link rel="stylesheet" href="assets/css/popup.css">
 </head>
 <body>
 
@@ -1230,6 +1231,68 @@ async function deleteDossier(dossierId, overlay) {
   loadInfluenceurs()
   overlay.remove()
   openDossiersManager()
+}
+
+/* ═══ POPUP DE CONFIRMATION GÉNÉRIQUE ═══ */
+function showConfirmPopup(opts) {
+  var icon         = opts.icon || '⚠️'
+  var title        = opts.title || 'Confirmer ?'
+  var message      = opts.message || ''
+  var message2     = opts.message2 || ''
+  var confirmLabel = opts.confirmLabel || 'Confirmer'
+  var style        = opts.style || 'danger' // 'danger' ou 'neutral'
+  var onConfirm    = opts.onConfirm || function() {}
+
+  var overlay = document.createElement('div')
+  overlay.className = 'popup-confirm-overlay'
+
+  var box = document.createElement('div')
+  box.className = 'popup-confirm-box ' + style
+
+  var iconEl = document.createElement('div')
+  iconEl.className = 'popup-confirm-icon'
+  iconEl.textContent = icon
+
+  var titleEl = document.createElement('h3')
+  titleEl.className = 'popup-confirm-title'
+  titleEl.textContent = title
+
+  var msgEl = document.createElement('p')
+  msgEl.className = 'popup-confirm-msg'
+  msgEl.innerHTML = message
+
+  var btnWrap = document.createElement('div')
+  btnWrap.className = 'popup-confirm-btns'
+
+  var btnCancel = document.createElement('button')
+  btnCancel.className = 'popup-confirm-btn-cancel'
+  btnCancel.textContent = 'Annuler'
+  btnCancel.onclick = function() { overlay.remove() }
+
+  var btnConfirm = document.createElement('button')
+  btnConfirm.className = 'popup-confirm-btn-confirm ' + style
+  btnConfirm.textContent = confirmLabel
+  btnConfirm.onclick = function() {
+    overlay.remove()
+    onConfirm()
+  }
+
+  btnWrap.appendChild(btnCancel)
+  btnWrap.appendChild(btnConfirm)
+  box.appendChild(iconEl)
+  box.appendChild(titleEl)
+  box.appendChild(msgEl)
+
+  if(message2) {
+    var msg2El = document.createElement('p')
+    msg2El.className = 'popup-confirm-msg2 ' + (style === 'danger' ? 'danger' : 'info')
+    msg2El.textContent = message2
+    box.appendChild(msg2El)
+  }
+
+  box.appendChild(btnWrap)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
 }
 
 /* ═══ AUDIT TRAIL (Stellar) ═══ */
