@@ -1214,6 +1214,7 @@ async function createDossier(nom, overlay) {
   if(!currentUser) return
   const { error } = await zenoDb.from('dossiers').insert({ user_id: currentUser.id, nom: nom })
   if(error) { alert('Erreur : ' + error.message); return }
+  logAction('dossier_cree', 'Dossier "' + nom + '" créé')
   await loadDossiers()
   overlay.remove()
   openDossiersManager()
@@ -1221,7 +1222,10 @@ async function createDossier(nom, overlay) {
 
 async function deleteDossier(dossierId, overlay) {
   if(!confirm('Supprimer ce dossier ? Les influenceurs associés repasseront en "Sans dossier".')) return
+  var d = dossiersData.find(function(x) { return x.id === dossierId })
+  var nom = d ? d.nom : 'Dossier'
   await zenoDb.from('dossiers').delete().eq('id', dossierId).eq('user_id', currentUser.id)
+  logAction('dossier_supprime', 'Dossier "' + nom + '" supprimé')
   await loadDossiers()
   loadInfluenceurs()
   overlay.remove()
