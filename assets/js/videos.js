@@ -372,6 +372,8 @@ function confirmDeleteVideo(videoId, titre) {
   })
 }
 
+/* ─── tetete etetet ─── */
+
 async function deleteVideo(videoId) {
   // Récupérer le titre avant suppression (pour le log)
   const { data: videoData } = await zenoDb
