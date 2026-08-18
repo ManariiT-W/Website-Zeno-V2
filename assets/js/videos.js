@@ -412,6 +412,14 @@ function confirmDeleteVideo(videoId, titre) {
 }
 
 async function deleteVideo(videoId) {
+  // Récupérer le titre avant suppression (pour le log)
+  const { data: videoData } = await zenoDb
+    .from('videos')
+    .select('titre')
+    .eq('id', videoId)
+    .single();
+  var videoTitre = videoData ? (videoData.titre || 'Vidéo sans titre') : 'Vidéo';
+
   // Supprimer uniquement les publications liées à cette vidéo
   await zenoDb
     .from('publications')
@@ -430,6 +438,8 @@ async function deleteVideo(videoId) {
     showVideoCondPopup('error')
     return
   }
+
+  logAction('video_supprimee', 'Vidéo "' + videoTitre + '" supprimée');
 
   // Recharger les vidéos
   loadVideos()
