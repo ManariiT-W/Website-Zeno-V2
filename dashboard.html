@@ -1746,6 +1746,8 @@ function toggleReseau(reseau) {
     updateReseauUI(reseau, true)
     saveReseauxLies()
     showReseauPopup('success', reseau)
+    var labels = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
+    logAction('reseau_lie', 'Réseau ' + (labels[reseau] || reseau) + ' lié')
   }, 1500)
 }
 
@@ -1754,6 +1756,8 @@ function delierReseau(reseau) {
   if(idx > -1) reseauxLies.splice(idx, 1)
   updateReseauUI(reseau, false)
   saveReseauxLies()
+  var labels = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube Shorts' }
+  logAction('reseau_delie', 'Réseau ' + (labels[reseau] || reseau) + ' délié')
 }
 
 function confirmDelierReseau(reseau) {
