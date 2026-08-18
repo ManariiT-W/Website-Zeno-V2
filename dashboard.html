@@ -2520,6 +2520,7 @@ async function saveScriptNew(titre, niche, influenceurId, contenu) {
     niche:          niche || null
   })
   if(error) { alert('Erreur : ' + error.message); return }
+  logAction('script_cree', 'Script "' + titre + '" créé')
   loadScripts()
   showScriptSuccessPopup('créé')
 }
@@ -2533,6 +2534,7 @@ async function saveScriptEdit(scriptId, titre, niche, influenceurId, contenu) {
     influenceur_id: influenceurId || null
   }).eq('id', scriptId).eq('user_id', currentUser.id)
   if(error) { alert('Erreur : ' + error.message); return }
+  logAction('script_modifie', 'Script "' + titre + '" modifié')
   loadScripts()
   showScriptSuccessPopup('modifié')
 }
@@ -2580,8 +2582,11 @@ function confirmDeleteScript(scriptId) {
 
 async function deleteScript(scriptId) {
   if(!currentUser) return
+  var s = scriptsData.find(function(x) { return x.id === scriptId })
+  var titre = s ? s.titre : 'Script'
   const { error } = await zenoDb.from('scripts').delete().eq('id', scriptId).eq('user_id', currentUser.id)
   if(error) { alert('Erreur : ' + error.message); return }
+  logAction('script_supprime', 'Script "' + titre + '" supprimé')
   loadScripts()
   showScriptSuccessPopup('supprimé')
 }
