@@ -1478,12 +1478,15 @@ function openInfluenceurObjectif(infId) {
 
 async function saveObjectif(infId, type, valeur, dossierId) {
   if(!currentUser) return
+  var inf = (window.influenceursData || []).find(function(i) { return i.id === infId })
+  var nomInf = inf ? inf.nom : 'Influenceur'
   const { error } = await zenoDb.from('influenceurs').update({
     objectif_type:   type,
     objectif_valeur: valeur,
     dossier_id:      dossierId
   }).eq('id', infId).eq('user_id', currentUser.id)
   if(error) { alert('Erreur : ' + error.message); return }
+  logAction('objectif_defini', 'Objectif défini pour "' + nomInf + '" (' + OBJECTIF_TYPE_LABELS[type] + ' : ' + formatNumber(valeur) + ')')
   loadInfluenceurs()
 }
 
