@@ -1660,6 +1660,8 @@ async function creationSubmit() {
 
   if(error) { alert('Erreur : ' + error.message); return }
 
+  logAction('influenceur_cree', 'Influenceur "' + creationData.prenom + ' ' + creationData.nom + '" créé')
+
   for(var i = 1; i <= 5; i++) {
     var el = document.getElementById('cstep' + i)
     if(el) el.style.display = 'none'
