@@ -1221,10 +1221,22 @@ async function createDossier(nom, overlay) {
   openDossiersManager()
 }
 
-async function deleteDossier(dossierId, overlay) {
-  if(!confirm('Supprimer ce dossier ? Les influenceurs associés repasseront en "Sans dossier".')) return
+function deleteDossier(dossierId, overlay) {
   var d = dossiersData.find(function(x) { return x.id === dossierId })
   var nom = d ? d.nom : 'Dossier'
+
+  showConfirmPopup({
+    icon: '📁',
+    title: 'Supprimer le dossier ?',
+    message: 'Tu es sur le point de supprimer <b style="color:#fff">' + nom + '</b>.',
+    message2: 'Les influenceurs associés repasseront en "Sans dossier".',
+    confirmLabel: 'Oui, supprimer',
+    style: 'danger',
+    onConfirm: function() { executeDeleteDossier(dossierId, nom, overlay) }
+  })
+}
+
+async function executeDeleteDossier(dossierId, nom, overlay) {
   await zenoDb.from('dossiers').delete().eq('id', dossierId).eq('user_id', currentUser.id)
   logAction('dossier_supprime', 'Dossier "' + nom + '" supprimé')
   await loadDossiers()
