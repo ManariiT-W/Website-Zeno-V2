@@ -609,14 +609,9 @@ async function savePublication() {
 
   for(var i = 0; i < window.planState.plateformes.length; i++) {
     var reseau = window.planState.plateformes[i]
-    await zenoDb.from('publications').insert({
-      user_id:          currentUser.id,
-      influenceur_id:   generationData.influenceur_id,
-      reseau:           reseau,
-      date_publication: pubDate.toISOString(),
-      statut:           'planifie'
-    })
-    await zenoDb.from('videos').insert({
+
+    // 1. Créer la vidéo d'abord pour récupérer son id
+    const { data: newVideo, error: videoError } = await zenoDb.from('videos').insert({
       user_id:        currentUser.id,
       influenceur_id: generationData.influenceur_id,
       titre:          'Vidéo - ' + generationData.influenceur_nom,
@@ -624,6 +619,18 @@ async function savePublication() {
       hashtags:       hashtags,
       reseau:         reseau,
       statut:         'en_attente'
+    }).select().single()
+
+    if(videoError) { console.error(videoError); continue }
+
+    // 2. Créer la publication en la liant à cette vidéo
+    await zenoDb.from('publications').insert({
+      user_id:          currentUser.id,
+      influenceur_id:   generationData.influenceur_id,
+      video_id:         newVideo.id,
+      reseau:           reseau,
+      date_publication: pubDate.toISOString(),
+      statut:           'planifie'
     })
   }
 
