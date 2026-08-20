@@ -1161,6 +1161,34 @@ function openInfluenceurMenu(infId, e) {
   }, 10)
 }
 
+/* ═══ SUPPRESSION INFLUENCEUR ═══ */
+function confirmDeleteInfluenceur(infId) {
+  var inf = allInfluenceursData.find(function(i) { return i.id === infId })
+  var nom = inf ? inf.nom : 'cet influenceur'
+
+  showConfirmPopup({
+    icon: '🗑',
+    title: 'Supprimer cet influenceur ?',
+    message: 'Tu es sur le point de supprimer <b style="color:#fff">' + nom + '</b>.',
+    message2: 'Cette action est irréversible.',
+    confirmLabel: 'Oui, supprimer',
+    style: 'danger',
+    onConfirm: function() { deleteInfluenceur(infId) }
+  })
+}
+
+async function deleteInfluenceur(infId) {
+  if(!currentUser) return
+  var inf = allInfluenceursData.find(function(i) { return i.id === infId })
+  var nom = inf ? inf.nom : 'Influenceur'
+
+  const { error } = await zenoDb.from('influenceurs').delete().eq('id', infId).eq('user_id', currentUser.id)
+  if(error) { alert('Erreur : ' + error.message); return }
+
+  logAction('influenceur_supprime', 'Influenceur "' + nom + '" supprimé')
+  loadInfluenceurs()
+}
+
 /* ═══ GESTION DES DOSSIERS (Stellar) ═══ */
 async function loadDossiers() {
   if(!currentUser) return
@@ -1356,6 +1384,7 @@ async function logAction(actionType, description) {
 
 var AUDIT_ICONS = {
   influenceur_cree:    '🤖',
+  influenceur_supprime:'🗑',
   video_supprimee:     '🎬',
   script_cree:         '📝',
   script_modifie:      '✏️',
