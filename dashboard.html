@@ -1113,16 +1113,52 @@ function buildInfluenceursHTML(list) {
       var d = dossiersData.find(function(x) { return x.id === inf.dossier_id })
       if(d) dossierBadge = '<span class="inf-card-platform" style="right:auto;left:10px;background:rgba(123,97,255,.6)">📁 ' + d.nom + '</span>'
     }
-    return '<div class="inf-card"' + clickAttr + '><div class="inf-card-img"><span style="font-size:48px">' + (emojis[inf.niche]||'🤖') + '</span><span class="inf-card-platform" style="color:var(--cyan)">' + (inf.reseau||'') + '</span>' + dossierBadge + '</div><div class="inf-card-body"><div class="inf-card-name">' + inf.nom + '</div><div class="inf-card-niche">' + (niches[inf.niche]||inf.niche) + '</div><div class="inf-card-stats"><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">abonnés</div></div><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">vidéos</div></div></div>' + objectifBlock + '</div></div>'
-  }).join('')
+    return '<div class="inf-card"' + clickAttr + '><div class="inf-card-img"><span style="font-size:48px">' + (emojis[inf.niche]||'🤖') + '</span><span class="inf-card-platform" style="color:var(--cyan)">' + (inf.reseau||'') + '</span>' + dossierBadge + '<button class="inf-card-dots" onclick="event.stopPropagation(); openInfluenceurMenu(\'' + inf.id + '\', event)">···</button></div><div class="inf-card-body"><div class="inf-card-name">' + inf.nom + '</div><div class="inf-card-niche">' + (niches[inf.niche]||inf.niche) + '</div><div class="inf-card-stats"><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">abonnés</div></div><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">vidéos</div></div></div>' + objectifBlock + '</div></div>'
+    }).join('')
+    document.getElementById('homeInfGrid').innerHTML = addCardHtml + allInfluenceursData.slice(0, 20).map(function(inf) {
 
-  document.getElementById('homeInfGrid').innerHTML = addCardHtml + allInfluenceursData.slice(0, 20).map(function(inf) {
     var clickAttr2     = plan === 'stellar' ? ' onclick="openInfluenceurObjectif(\'' + inf.id + '\')" style="cursor:pointer"' : ''
     var objectifBlock2 = plan === 'stellar' ? buildObjectifMiniBar(inf) : ''
     return '<div class="inf-card"' + clickAttr2 + '><div class="inf-card-img"><span style="font-size:48px">' + (emojis[inf.niche]||'🤖') + '</span><span class="inf-card-platform" style="color:var(--cyan)">' + (inf.reseau||'') + '</span></div><div class="inf-card-body"><div class="inf-card-name">' + inf.nom + '</div><div class="inf-card-niche">' + (niches[inf.niche]||inf.niche) + '</div><div class="inf-card-stats"><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">abonnés</div></div><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">vidéos</div></div></div>' + objectifBlock2 + '</div></div>'
   }).join('')
 
   document.getElementById('allInfGrid').innerHTML = html
+}
+
+/* ═══ MENU 3 POINTS — INFLUENCEUR ═══ */
+function openInfluenceurMenu(infId, e) {
+  e.stopPropagation()
+  var existing = document.getElementById('infMenuPopup')
+  if(existing) existing.remove()
+
+  var menu = document.createElement('div')
+  menu.id = 'infMenuPopup'
+  menu.style.cssText = 'position:fixed;z-index:400;background:#0d0d1f;border:1px solid rgba(123,97,255,.2);border-radius:12px;padding:6px;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.4)'
+  menu.style.top  = (e.clientY + 8) + 'px'
+  menu.style.left = (e.clientX - 140) + 'px'
+
+  var items = [
+    { icon:'✏️', label:'Modifier',  action: function() { menu.remove(); openInfluenceurEdit(infId) } },
+    { icon:'🗑', label:'Supprimer', action: function() { menu.remove(); confirmDeleteInfluenceur(infId) }, red: true }
+  ]
+
+  items.forEach(function(item) {
+    var btn = document.createElement('button')
+    btn.style.cssText = 'display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:8px;background:none;border:none;color:' + (item.red ? '#ef4444' : '#a0a0b0') + ';font-size:13px;font-weight:500;cursor:pointer;font-family:\'DM Sans\',sans-serif;transition:background .2s;text-align:left'
+    btn.innerHTML = item.icon + ' ' + item.label
+    btn.onmouseover = function() { this.style.background = item.red ? 'rgba(239,68,68,.08)' : 'rgba(255,255,255,.05)' }
+    btn.onmouseout  = function() { this.style.background = 'none' }
+    btn.onclick = item.action
+    menu.appendChild(btn)
+  })
+
+  document.body.appendChild(menu)
+  setTimeout(function() {
+    document.addEventListener('click', function handler() {
+      menu.remove()
+      document.removeEventListener('click', handler)
+    })
+  }, 10)
 }
 
 /* ═══ GESTION DES DOSSIERS (Stellar) ═══ */
