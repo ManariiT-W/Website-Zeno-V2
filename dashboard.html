@@ -1182,6 +1182,16 @@ async function deleteInfluenceur(infId) {
   var inf = allInfluenceursData.find(function(i) { return i.id === infId })
   var nom = inf ? inf.nom : 'Influenceur'
 
+  // 1. Délier les scripts (on garde le contenu, on retire juste le lien)
+  await zenoDb.from('scripts').update({ influenceur_id: null }).eq('influenceur_id', infId).eq('user_id', currentUser.id)
+
+  // 2. Supprimer les publications liées
+  await zenoDb.from('publications').delete().eq('influenceur_id', infId).eq('user_id', currentUser.id)
+
+  // 3. Supprimer les vidéos liées
+  await zenoDb.from('videos').delete().eq('influenceur_id', infId).eq('user_id', currentUser.id)
+
+  // 4. Supprimer l'influenceur lui-même
   const { error } = await zenoDb.from('influenceurs').delete().eq('id', infId).eq('user_id', currentUser.id)
   if(error) { alert('Erreur : ' + error.message); return }
 
