@@ -1171,31 +1171,62 @@ function confirmDeleteInfluenceur(infId) {
     title: 'Supprimer cet influenceur ?',
     message: 'Tu es sur le point de supprimer <b style="color:#fff">' + nom + '</b>.',
     message2: 'Cette action est irréversible.',
-    confirmLabel: 'Oui, supprimer',
+    confirmLabel: 'Continuer',
     style: 'danger',
-    onConfirm: function() { deleteInfluenceur(infId) }
+    onConfirm: function() { confirmDeleteInfluenceurDetails(infId) }
   })
 }
 
-async function deleteInfluenceur(infId) {
+async function confirmDeleteInfluenceurDetails(infId) {
+  var inf = allInfluenceursData.find(function(i) { return i.id === infId })
+  var nom = inf ? inf.nom : 'cet influenceur'
+
+  const { data: vids }    = await zenoDb.from('videos').select('id').eq('influenceur_id', infId).eq('user_id', currentUser.id)
+  const { data: pubs }    = await zenoDb.from('publications').select('id').eq('influenceur_id', infId).eq('user_id', currentUser.id)
+  const { data: scripts } = await zenoDb.from('scripts').select('id').eq('influenceur_id', infId).eq('user_id', currentUser.id)
+
+  var nbVids    = vids    ? vids.length    : 0
+  var nbPubs    = pubs    ? pubs.length    : 0
+  var nbScripts = scripts ? scripts.length : 0
+
+  var detailMsg = '<b style="color:#fff">' + nom + '</b> sera définitivement supprimé.<br><br>Seront également supprimés :<br>'
+  detailMsg += '• ' + nbVids + ' vidéo' + (nbVids > 1 ? 's' : '') + '<br>'
+  detailMsg += '• ' + nbPubs + ' publication' + (nbPubs > 1 ? 's' : '') + ' planifiée' + (nbPubs > 1 ? 's' : '') + '<br>'
+  detailMsg += nbScripts > 0
+    ? '• ' + nbScripts + ' script' + (nbScripts > 1 ? 's' : '') + ' seront conservés mais déliés de cet influenceur'
+    : '• Aucun script lié'
+
+  showConfirmPopup({
+    icon: '⚠️',
+    title: 'Dernière confirmation',
+    message: detailMsg,
+    message2: 'Cette action est irréversible.',
+    confirmLabel: 'Oui, tout supprimer',
+    style: 'danger',
+    onConfirm: function() { deleteInfluenceur(infId, nbVids, nbPubs, nbScripts) }
+  })
+}
+
+async function deleteInfluenceur(infId, nbVids, nbPubs, nbScripts) {
   if(!currentUser) return
   var inf = allInfluenceursData.find(function(i) { return i.id === infId })
   var nom = inf ? inf.nom : 'Influenceur'
 
-  // 1. Délier les scripts (on garde le contenu, on retire juste le lien)
   await zenoDb.from('scripts').update({ influenceur_id: null }).eq('influenceur_id', infId).eq('user_id', currentUser.id)
-
-  // 2. Supprimer les publications liées
   await zenoDb.from('publications').delete().eq('influenceur_id', infId).eq('user_id', currentUser.id)
-
-  // 3. Supprimer les vidéos liées
   await zenoDb.from('videos').delete().eq('influenceur_id', infId).eq('user_id', currentUser.id)
 
-  // 4. Supprimer l'influenceur lui-même
   const { error } = await zenoDb.from('influenceurs').delete().eq('id', infId).eq('user_id', currentUser.id)
   if(error) { alert('Erreur : ' + error.message); return }
 
-  logAction('influenceur_supprime', 'Influenceur "' + nom + '" supprimé')
+  var detail = 'Influenceur "' + nom + '" supprimé'
+  var extras = []
+  if(nbVids)    extras.push(nbVids + ' vidéo' + (nbVids > 1 ? 's' : ''))
+  if(nbPubs)    extras.push(nbPubs + ' publication' + (nbPubs > 1 ? 's' : ''))
+  if(nbScripts) extras.push(nbScripts + ' script' + (nbScripts > 1 ? 's' : '') + ' délié' + (nbScripts > 1 ? 's' : ''))
+  if(extras.length > 0) detail += ' (+ ' + extras.join(', ') + ')'
+
+  logAction('influenceur_supprime', detail)
   loadInfluenceurs()
 }
 
