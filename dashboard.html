@@ -1177,6 +1177,174 @@ function confirmDeleteInfluenceur(infId) {
   })
 }
 
+/* ═══ MODIFICATION INFLUENCEUR ═══ */
+var editInfluenceurState = { step: 1, id: null }
+var NICHE_OPTIONS_LIST = [
+  { value:'mode', label:'Mode & Lifestyle' },
+  { value:'fitness', label:'Fitness & Nutrition' },
+  { value:'tech', label:'Tech & Innovation' },
+  { value:'food', label:'Cuisine & Gastronomie' },
+  { value:'gaming', label:'Gaming & Esport' },
+  { value:'travel', label:'Voyage & Aventure' },
+  { value:'business', label:'Business & Finance' },
+  { value:'beauty', label:'Beauté & Skincare' }
+]
+var STYLE_OPTIONS_LIST = [
+  { value:'energique', label:'Énergique et dynamique' },
+  { value:'calme', label:'Calme et posé' },
+  { value:'humoristique', label:'Humoristique' },
+  { value:'educatif', label:'Éducatif et expert' },
+  { value:'inspirant', label:'Inspirant et motivant' }
+]
+
+function openInfluenceurEdit(infId) {
+  var inf = allInfluenceursData.find(function(i) { return i.id === infId })
+  if(!inf) return
+
+  editInfluenceurState = { step: 1, id: infId }
+
+  var existing = document.getElementById('editInfPopup')
+  if(existing) existing.remove()
+
+  var nicheIsKnown = NICHE_OPTIONS_LIST.some(function(o) { return o.value === inf.niche })
+  var styleIsKnown = STYLE_OPTIONS_LIST.some(function(o) { return o.value === inf.style })
+
+  var nicheOptionsHtml = '<option value="" disabled>Choisis une niche...</option>' +
+    NICHE_OPTIONS_LIST.map(function(o) {
+      return '<option value="' + o.value + '"' + (inf.niche === o.value ? ' selected' : '') + '>' + o.label + '</option>'
+    }).join('') +
+    '<option value="custom"' + (!nicheIsKnown ? ' selected' : '') + '>✏️ Écrire ma propre niche...</option>'
+
+  var styleOptionsHtml = '<option value="" disabled>Choisis un style...</option>' +
+    STYLE_OPTIONS_LIST.map(function(o) {
+      return '<option value="' + o.value + '"' + (inf.style === o.value ? ' selected' : '') + '>' + o.label + '</option>'
+    }).join('') +
+    '<option value="custom"' + (!styleIsKnown ? ' selected' : '') + '>✏️ Écrire mon propre style...</option>'
+
+  var overlay = document.createElement('div')
+  overlay.id = 'editInfPopup'
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)'
+
+  overlay.innerHTML =
+    '<div style="background:#0d0d1f;border:1px solid rgba(123,97,255,.2);border-radius:24px;padding:32px;width:100%;max-width:480px;position:relative;max-height:85vh;overflow-y:auto">' +
+
+    '<button onclick="document.getElementById(\'editInfPopup\').remove()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#6b6b80;cursor:pointer;font-size:14px">✕</button>' +
+
+    '<h3 style="font-family:\'Syne\',sans-serif;font-size:18px;font-weight:800;margin-bottom:4px;color:#fff;padding-right:32px">Modifier l\'influenceur</h3>' +
+    '<p id="editInfStepLabel" style="font-size:12px;color:#6b6b80;margin-bottom:20px">Étape 1/2 — Identité</p>' +
+
+    /* ÉTAPE 1 */
+    '<div id="editInfStep1">' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">' +
+        '<div><label style="display:block;font-size:12px;color:#6b6b80;margin-bottom:6px">Prénom</label><input type="text" id="edit-prenom" value="' + (inf.prenom || '') + '" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif"></div>' +
+        '<div><label style="display:block;font-size:12px;color:#6b6b80;margin-bottom:6px">Nom</label><input type="text" id="edit-nom" value="' + (inf.nom_famille || '') + '" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif"></div>' +
+      '</div>' +
+      '<div style="margin-bottom:14px"><label style="display:block;font-size:12px;color:#6b6b80;margin-bottom:6px">Âge</label><input type="number" id="edit-age" min="18" max="60" value="' + (inf.age || '') + '" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif"></div>' +
+      '<div style="margin-bottom:14px"><label style="display:block;font-size:12px;color:#6b6b80;margin-bottom:6px">Niche / Catégorie</label><select id="edit-niche" onchange="document.getElementById(\'edit-niche-custom-wrap\').style.display = this.value===\'custom\'?\'block\':\'none\'" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif;cursor:pointer">' + nicheOptionsHtml + '</select></div>' +
+      '<div id="edit-niche-custom-wrap" style="margin-bottom:14px;display:' + (!nicheIsKnown ? 'block' : 'none') + '"><label style="display:block;font-size:12px;color:#6b6b80;margin-bottom:6px">Ta niche personnalisée</label><input type="text" id="edit-niche-custom" value="' + (!nicheIsKnown ? (inf.niche || '') : '') + '" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif"></div>' +
+      '<div style="margin-bottom:6px"><label style="display:block;font-size:12px;color:#6b6b80;margin-bottom:6px">Nationalité</label><input type="text" id="edit-nationalite" value="' + (inf.nationalite || '') + '" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif"></div>' +
+    '</div>' +
+
+    /* ÉTAPE 2 */
+    '<div id="editInfStep2" style="display:none">' +
+      '<div style="margin-bottom:14px"><label style="display:block;font-size:12px;color:#6b6b80;margin-bottom:6px">Qualités</label><input type="text" id="edit-qualites" value="' + (inf.qualites || '') + '" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif"></div>' +
+      '<div style="margin-bottom:14px"><label style="display:block;font-size:12px;color:#6b6b80;margin-bottom:6px">Défauts</label><input type="text" id="edit-defauts" value="' + (inf.defauts || '') + '" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif"></div>' +
+      '<div style="margin-bottom:14px"><label style="display:block;font-size:12px;color:#6b6b80;margin-bottom:6px">Style de communication</label><select id="edit-style" onchange="document.getElementById(\'edit-style-custom-wrap\').style.display = this.value===\'custom\'?\'block\':\'none\'" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif;cursor:pointer">' + styleOptionsHtml + '</select></div>' +
+      '<div id="edit-style-custom-wrap" style="margin-bottom:14px;display:' + (!styleIsKnown ? 'block' : 'none') + '"><label style="display:block;font-size:12px;color:#6b6b80;margin-bottom:6px">Ton style personnalisé</label><input type="text" id="edit-style-custom" value="' + (!styleIsKnown ? (inf.style || '') : '') + '" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif"></div>' +
+      '<div style="margin-bottom:6px"><label style="display:block;font-size:12px;color:#6b6b80;margin-bottom:6px">Hobbies</label><input type="text" id="edit-hobbies" value="' + (inf.hobbies || '') + '" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:13.5px;outline:none;font-family:\'DM Sans\',sans-serif"></div>' +
+    '</div>' +
+
+    '<div id="editInfNav" style="display:flex;gap:10px;margin-top:20px">' +
+      '<button onclick="editInfluenceurNext(1)" style="flex:1;padding:12px;border-radius:12px;background:var(--violet);border:none;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif">Continuer →</button>' +
+    '</div>' +
+
+    '</div>'
+
+  document.body.appendChild(overlay)
+  overlay.addEventListener('click', function(e) { if(e.target === overlay) overlay.remove() })
+}
+
+function editInfluenceurNext(from) {
+  if(from === 1) {
+    document.getElementById('editInfStep1').style.display = 'none'
+    document.getElementById('editInfStep2').style.display = 'block'
+    document.getElementById('editInfStepLabel').textContent = 'Étape 2/2 — Personnalité'
+    document.getElementById('editInfNav').innerHTML =
+      '<button onclick="editInfluenceurBack()" style="flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#a0a0b0;font-size:13.5px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif">← Retour</button>' +
+      '<button onclick="editInfluenceurSave()" style="flex:2;padding:12px;border-radius:12px;background:var(--violet);border:none;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif">✓ Sauvegarder les modifications</button>'
+    editInfluenceurState.step = 2
+  }
+}
+
+function editInfluenceurBack() {
+  document.getElementById('editInfStep2').style.display = 'none'
+  document.getElementById('editInfStep1').style.display = 'block'
+  document.getElementById('editInfStepLabel').textContent = 'Étape 1/2 — Identité'
+  document.getElementById('editInfNav').innerHTML =
+    '<button onclick="editInfluenceurNext(1)" style="flex:1;padding:12px;border-radius:12px;background:var(--violet);border:none;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif">Continuer →</button>'
+  editInfluenceurState.step = 1
+}
+
+async function editInfluenceurSave() {
+  if(!currentUser) return
+  var infId = editInfluenceurState.id
+
+  var prenom      = document.getElementById('edit-prenom').value.trim()
+  var nomFamille  = document.getElementById('edit-nom').value.trim()
+  var age         = document.getElementById('edit-age').value
+  var nicheVal    = document.getElementById('edit-niche').value
+  var niche       = nicheVal === 'custom' ? document.getElementById('edit-niche-custom').value.trim() : nicheVal
+  var nationalite = document.getElementById('edit-nationalite').value.trim()
+  var qualites    = document.getElementById('edit-qualites').value.trim()
+  var defauts     = document.getElementById('edit-defauts').value.trim()
+  var styleVal    = document.getElementById('edit-style').value
+  var style       = styleVal === 'custom' ? document.getElementById('edit-style-custom').value.trim() : styleVal
+  var hobbies     = document.getElementById('edit-hobbies').value.trim()
+
+  if(!prenom || !niche) { alert('Le prénom et la niche sont obligatoires.'); return }
+
+  var personnalite = 'Style: ' + style + ' | Qualités: ' + qualites + ' | Défauts: ' + defauts + ' | Hobbies: ' + hobbies
+
+  const { error } = await zenoDb.from('influenceurs').update({
+    nom:          prenom + ' ' + nomFamille,
+    prenom:       prenom,
+    nom_famille:  nomFamille,
+    age:          age ? parseInt(age) : null,
+    niche:        niche,
+    nationalite:  nationalite,
+    qualites:     qualites,
+    defauts:      defauts,
+    style:        style,
+    hobbies:      hobbies,
+    personnalite: personnalite
+  }).eq('id', infId).eq('user_id', currentUser.id)
+
+  if(error) { alert('Erreur : ' + error.message); return }
+
+  document.getElementById('editInfPopup').remove()
+  logAction('influenceur_modifie', 'Influenceur "' + prenom + ' ' + nomFamille + '" modifié')
+  loadInfluenceurs()
+  showScriptSuccessPopupCustom('Influenceur modifié !', 'Les informations ont été mises à jour.')
+}
+
+function showScriptSuccessPopupCustom(title, sub) {
+  var overlay = document.createElement('div')
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.8);backdrop-filter:blur(4px)'
+  var box = document.createElement('div')
+  box.style.cssText = 'background:#0d0d1f;border:1px solid rgba(29,158,117,.2);border-radius:20px;padding:28px;max-width:340px;text-align:center'
+  var p = document.createElement('p')
+  p.style.cssText = 'font-size:15px;font-weight:700;color:#1D9E75;margin-bottom:6px'
+  p.textContent = '✓ ' + title
+  var sub2 = document.createElement('p')
+  sub2.style.cssText = 'font-size:12.5px;color:#6b6b80'
+  sub2.textContent = sub
+  box.appendChild(p)
+  box.appendChild(sub2)
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+  setTimeout(function() { overlay.remove() }, 2000)
+}
+
 async function confirmDeleteInfluenceurDetails(infId) {
   var inf = allInfluenceursData.find(function(i) { return i.id === infId })
   var nom = inf ? inf.nom : 'cet influenceur'
@@ -1425,6 +1593,7 @@ async function logAction(actionType, description) {
 
 var AUDIT_ICONS = {
   influenceur_cree:    '🤖',
+  influenceur_modifie: '✏️',
   influenceur_supprime:'🗑',
   video_supprimee:     '🎬',
   script_cree:         '📝',
