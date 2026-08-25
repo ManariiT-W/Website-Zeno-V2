@@ -388,7 +388,7 @@ function openPlanificationView() {
     '<div class="plan-time-wrap">' +
     '<div class="plan-section-title" style="margin-bottom:10px">Heure de publication</div>' +
     '<div style="display:flex;align-items:center;gap:10px">' +
-    '<select id="planHeure" class="plan-select" onchange="checkPublishReady()">' + buildHours() + '</select>' +
+    '<select id="planHeure" class="plan-select" onchange="refreshMinuteSelect(); checkPublishReady()">' + buildHours() + '</select>' +
     '<span style="color:var(--muted);font-weight:700">:</span>' +
     '<select id="planMinute" class="plan-select" onchange="checkPublishReady()">' + buildMinutes() + '</select>' +
     '</div>' +
@@ -459,22 +459,57 @@ function buildCalendar(month, year, today) {
   return html
 }
 
-function buildHours() {
+function buildHours(minHour) {
   var html = ''
+  var defaultSet = false
   for(var h = 0; h < 24; h++) {
     var val = h < 10 ? '0' + h : '' + h
-    html += '<option value="' + val + '"' + (h === 12 ? ' selected' : '') + '>' + val + 'h</option>'
+    var isDisabled = (minHour !== null && minHour !== undefined && h < minHour)
+    var isDefault = !defaultSet && !isDisabled && (minHour !== null && minHour !== undefined ? h === minHour : h === 12)
+    if(isDefault) defaultSet = true
+    html += '<option value="' + val + '"' + (isDefault ? ' selected' : '') + (isDisabled ? ' disabled' : '') + '>' + val + 'h</option>'
   }
   return html
 }
 
-function buildMinutes() {
+function buildMinutes(minMinute) {
   var html = ''
   var mins = ['00','05','10','15','20','25','30','35','40','45','50','55']
+  var defaultSet = false
   mins.forEach(function(m) {
-    html += '<option value="' + m + '">' + m + '</option>'
+    var val = parseInt(m)
+    var isDisabled = (minMinute !== null && minMinute !== undefined && val < minMinute)
+    var isDefault = !defaultSet && !isDisabled
+    if(isDefault) defaultSet = true
+    html += '<option value="' + m + '"' + (isDefault ? ' selected' : '') + (isDisabled ? ' disabled' : '') + '>' + m + '</option>'
   })
   return html
+}
+
+function getNowConstraint(dateStr) {
+  var now = new Date()
+  var todayStr = now.getFullYear() + '-' + (now.getMonth()+1) + '-' + now.getDate()
+  if(dateStr !== todayStr) return null
+  return { hour: now.getHours(), minute: now.getMinutes() }
+}
+
+function refreshTimeSelects(dateStr) {
+  var constraint   = getNowConstraint(dateStr)
+  var heureSelect  = document.getElementById('planHeure')
+  if(!heureSelect) return
+  heureSelect.innerHTML = buildHours(constraint ? constraint.hour : null)
+  refreshMinuteSelect()
+}
+
+function refreshMinuteSelect() {
+  var dateStr      = window.planState ? window.planState.date : null
+  var constraint   = getNowConstraint(dateStr)
+  var heureSelect  = document.getElementById('planHeure')
+  var minuteSelect = document.getElementById('planMinute')
+  if(!heureSelect || !minuteSelect) return
+  var selectedHour = parseInt(heureSelect.value)
+  var minMinute    = (constraint && selectedHour === constraint.hour) ? constraint.minute : null
+  minuteSelect.innerHTML = buildMinutes(minMinute)
 }
 
 function buildPlatformButtons() {
@@ -504,6 +539,7 @@ function selectCalendarDay(el, dateStr) {
   var monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
   var label = document.getElementById('planDateSelected')
   if(label) label.textContent = '📅 ' + parts[2] + ' ' + monthNames[parseInt(parts[1])-1] + ' ' + parts[0]
+  refreshTimeSelects(dateStr)
   checkPublishReady()
 }
 
@@ -544,6 +580,13 @@ function retourGeneration() {
 
 function confirmerPublication() {
   if(!window.planState || !window.planState.date || window.planState.plateformes.length === 0) return
+
+  var parts0 = window.planState.date.split('-')
+  var pubDateTime = new Date(parseInt(parts0[0]), parseInt(parts0[1])-1, parseInt(parts0[2]), parseInt(document.getElementById('planHeure').value), parseInt(document.getElementById('planMinute').value))
+  if(pubDateTime < new Date()) {
+    showGenAlert('L\'heure sélectionnée est déjà passée. Choisis une heure future.')
+    return
+  }
   var parts      = window.planState.date.split('-')
   var monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
   var dateLabel  = parts[2] + ' ' + monthNames[parseInt(parts[1])-1] + ' ' + parts[0]

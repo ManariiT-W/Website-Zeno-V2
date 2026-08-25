@@ -511,7 +511,7 @@
         <!-- ÉTAPE 5 — Réseau -->
         <div class="creation-form-box" id="cstep5" style="display:none">
           <h3 class="creation-form-title">Réseau social</h3>
-          <p class="creation-form-sub">Sur quel réseau ton influenceur va-t-il publier ?</p>
+          <p class="creation-form-sub">Sur quel(s) réseau(x) ton influenceur va-t-il publier ? (tu peux en choisir plusieurs)</p>
           <div class="reseau-grid">
             <div class="reseau-card" onclick="selectReseau(this,'tiktok')">
               <div class="reseau-icon">
@@ -893,7 +893,7 @@ const zenoDb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 /* ═══ STATE ═══ */
 var currentUser = null
 var currentStep = 1
-var creationData = { prenom:'', nom:'', age:'', niche:'', nationalite:'', qualites:'', defauts:'', style:'', hobbies:'', visage:'', voix:'', reseau:'' }
+var creationData = { prenom:'', nom:'', age:'', niche:'', nationalite:'', qualites:'', defauts:'', style:'', hobbies:'', visage:'', voix:'', reseau:[] }
 
 /* ═══ AUTH CHECK ═══ */
 async function checkAuth() {
@@ -1098,6 +1098,12 @@ function filtrerParDossier() {
   applyInfluenceursFilter()
 }
 
+function formatReseauLabels(str) {
+  var labels = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube' }
+  if(!str) return ''
+  return str.split(',').map(function(r) { return labels[r] || r }).join(' + ')
+}
+
 function buildInfluenceursHTML(list) {
   var niches = {mode:'Mode & Lifestyle',fitness:'Fitness',tech:'Tech',food:'Cuisine',gaming:'Gaming',travel:'Voyage',business:'Business',beauty:'Beauté'}
   var emojis = {mode:'👗',fitness:'💪',tech:'💻',food:'🍕',gaming:'🎮',travel:'✈️',business:'💼',beauty:'💄'}
@@ -1121,13 +1127,13 @@ function buildInfluenceursHTML(list) {
       var d = dossiersData.find(function(x) { return x.id === inf.dossier_id })
       if(d) dossierBadge = '<span class="inf-card-platform" style="right:auto;left:10px;background:rgba(123,97,255,.6)">📁 ' + d.nom + '</span>'
     }
-    return '<div class="inf-card"' + clickAttr + '><div class="inf-card-img"><span style="font-size:48px">' + (emojis[inf.niche]||'🤖') + '</span><span class="inf-card-platform" style="color:var(--cyan)">' + (inf.reseau||'') + '</span>' + dossierBadge + '<button class="inf-card-dots" onclick="event.stopPropagation(); openInfluenceurMenu(\'' + inf.id + '\', event)">···</button></div><div class="inf-card-body"><div class="inf-card-name">' + inf.nom + '</div><div class="inf-card-niche">' + (niches[inf.niche]||inf.niche) + '</div><div class="inf-card-stats"><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">abonnés</div></div><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">vidéos</div></div></div>' + objectifBlock + '</div></div>'
+    return '<div class="inf-card"' + clickAttr + '><div class="inf-card-img"><span style="font-size:48px">' + (emojis[inf.niche]||'🤖') + '</span><span class="inf-card-platform" style="color:var(--cyan)">' + formatReseauLabels(inf.reseau) + '</span>' + dossierBadge + '<button class="inf-card-dots" onclick="event.stopPropagation(); openInfluenceurMenu(\'' + inf.id + '\', event)">···</button></div><div class="inf-card-body"><div class="inf-card-name">' + inf.nom + '</div><div class="inf-card-niche">' + (niches[inf.niche]||inf.niche) + '</div><div class="inf-card-stats"><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">abonnés</div></div><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">vidéos</div></div></div>' + objectifBlock + '</div></div>'
     }).join('')
     document.getElementById('homeInfGrid').innerHTML = addCardHtml + allInfluenceursData.slice(0, 20).map(function(inf) {
 
     var clickAttr2     = plan === 'stellar' ? ' onclick="openInfluenceurObjectif(\'' + inf.id + '\')" style="cursor:pointer"' : ''
     var objectifBlock2 = plan === 'stellar' ? buildObjectifMiniBar(inf) : ''
-    return '<div class="inf-card"' + clickAttr2 + '><div class="inf-card-img"><span style="font-size:48px">' + (emojis[inf.niche]||'🤖') + '</span><span class="inf-card-platform" style="color:var(--cyan)">' + (inf.reseau||'') + '</span></div><div class="inf-card-body"><div class="inf-card-name">' + inf.nom + '</div><div class="inf-card-niche">' + (niches[inf.niche]||inf.niche) + '</div><div class="inf-card-stats"><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">abonnés</div></div><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">vidéos</div></div></div>' + objectifBlock2 + '</div></div>'
+    return '<div class="inf-card"' + clickAttr2 + '><div class="inf-card-img"><span style="font-size:48px">' + (emojis[inf.niche]||'🤖') + '</span><span class="inf-card-platform" style="color:var(--cyan)">' + formatReseauLabels(inf.reseau) + '</span></div><div class="inf-card-body"><div class="inf-card-name">' + inf.nom + '</div><div class="inf-card-niche">' + (niches[inf.niche]||inf.niche) + '</div><div class="inf-card-stats"><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">abonnés</div></div><div><div class="inf-card-stat-val">0</div><div class="inf-card-stat-lbl">vidéos</div></div></div>' + objectifBlock2 + '</div></div>'
   }).join('')
 
   document.getElementById('allInfGrid').innerHTML = html
@@ -1994,13 +2000,18 @@ function selectVoix(card, type) {
 }
 
 function selectReseau(card, reseau) {
-  document.querySelectorAll('.reseau-card').forEach(function(c) { c.classList.remove('selected') })
-  card.classList.add('selected')
-  creationData.reseau = reseau
+  card.classList.toggle('selected')
+  if(!Array.isArray(creationData.reseau)) creationData.reseau = []
+  var idx = creationData.reseau.indexOf(reseau)
+  if(card.classList.contains('selected')) {
+    if(idx === -1) creationData.reseau.push(reseau)
+  } else {
+    if(idx > -1) creationData.reseau.splice(idx, 1)
+  }
 }
 
 async function creationSubmit() {
-  if(!creationData.reseau) { alert('Choisis un réseau social.'); return }
+  if(!creationData.reseau || creationData.reseau.length === 0) { alert('Choisis au moins un réseau social.'); return }
   if(!currentUser) return
 
   var btn = document.querySelector('#cstep5 .btn-next')
@@ -2024,7 +2035,7 @@ async function creationSubmit() {
     personnalite: personnalite,
     voix:         creationData.voix,
     visage_url:   creationData.visage,
-    reseau:       creationData.reseau,
+    reseau:       creationData.reseau.join(','),
     statut:       'actif'
   })
 
@@ -2045,7 +2056,7 @@ async function creationSubmit() {
 }
 
 function resetCreation() {
-  creationData = { prenom:'', nom:'', age:'', niche:'', nationalite:'', qualites:'', defauts:'', style:'', hobbies:'', visage:'', voix:'', reseau:'' }
+  creationData = { prenom:'', nom:'', age:'', niche:'', nationalite:'', qualites:'', defauts:'', style:'', hobbies:'', visage:'', voix:'', reseau:[] }
   document.getElementById('creationStepper').style.display = 'flex'
   showCreationStep(1)
   document.querySelectorAll('.visage-card,.voix-card,.reseau-card').forEach(function(c) { c.classList.remove('selected') })
