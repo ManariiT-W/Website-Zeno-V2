@@ -747,7 +747,7 @@ async function openScriptSelector() {
     return
   }
 
-    // Charger les scripts
+      // Charger les scripts
   const { data: scripts } = await zenoDb
     .from('scripts')
     .select('*')
@@ -766,18 +766,18 @@ async function openScriptSelector() {
   closeBtn.onclick = function() { overlay.remove() }
 
   var titleEl = document.createElement('h3')
-  titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:6px;color:#fff"
+  titleEl.style.cssText = "font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:6px;color:#fff;padding-right:32px"
   titleEl.textContent = 'Choisir un script'
 
   var subEl = document.createElement('p')
   subEl.style.cssText = 'font-size:12.5px;color:#6b6b80;margin-bottom:16px'
   subEl.textContent = 'Sélectionne un script pour l\'insérer dans la description.'
 
-  var listWrap = document.createElement('div')
-  listWrap.style.cssText = 'overflow-y:auto;display:flex;flex-direction:column;gap:20px;flex:1'
-
-  var allScripts = scripts || []
+  var allScripts    = scripts || []
   var selectedInfId = generationData.influenceur_id
+  var infNom        = generationData.influenceur_nom || 'cet influenceur'
+  var infScripts     = selectedInfId ? allScripts.filter(function(s) { return s.influenceur_id === selectedInfId }) : []
+  var libraryScripts = selectedInfId ? allScripts.filter(function(s) { return s.influenceur_id !== selectedInfId }) : allScripts
 
   function buildScriptCard(s) {
     var card = document.createElement('div')
@@ -806,48 +806,74 @@ async function openScriptSelector() {
     return card
   }
 
-  function buildSection(sectionTitle, sectionIcon, list) {
-    var section = document.createElement('div')
-
-    var head = document.createElement('div')
-    head.style.cssText = 'font-size:11px;font-weight:700;color:#6b6b80;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px'
-    head.textContent = sectionIcon + ' ' + sectionTitle
-    section.appendChild(head)
-
+  function renderScriptList(container, list, emptyMsg) {
+    container.innerHTML = ''
     if(list.length === 0) {
       var emptyEl = document.createElement('div')
-      emptyEl.style.cssText = 'text-align:center;padding:20px;color:#6b6b80;font-size:12.5px;background:rgba(255,255,255,.02);border-radius:12px'
-      emptyEl.textContent = 'Aucun script ici pour le moment.'
-      section.appendChild(emptyEl)
+      emptyEl.style.cssText = 'text-align:center;padding:30px 20px;color:#6b6b80;font-size:12.5px'
+      emptyEl.innerHTML = '<div style="font-size:32px;margin-bottom:10px;opacity:.4">📝</div>' + emptyMsg
+      container.appendChild(emptyEl)
     } else {
-      var cardsWrap = document.createElement('div')
-      cardsWrap.style.cssText = 'display:flex;flex-direction:column;gap:10px'
-      list.forEach(function(s) { cardsWrap.appendChild(buildScriptCard(s)) })
-      section.appendChild(cardsWrap)
+      list.forEach(function(s) { container.appendChild(buildScriptCard(s)) })
     }
-    return section
   }
+
+  // ─── ONGLETS ───
+  var tabsWrap = document.createElement('div')
+  tabsWrap.style.cssText = 'display:flex;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:4px;margin-bottom:18px;gap:4px'
+
+  var tabInf = document.createElement('button')
+  tabInf.style.cssText = 'flex:1;padding:10px 12px;border-radius:9px;border:none;cursor:pointer;font-size:12.5px;font-weight:700;font-family:\'DM Sans\',sans-serif;transition:all .2s'
+  tabInf.textContent = '🤖 Scripts influenceur'
+
+  var tabLib = document.createElement('button')
+  tabLib.style.cssText = 'flex:1;padding:10px 12px;border-radius:9px;border:none;cursor:pointer;font-size:12.5px;font-weight:700;font-family:\'DM Sans\',sans-serif;transition:all .2s'
+  tabLib.textContent = '📚 Bibliothèque de scripts'
+
+  var listWrap = document.createElement('div')
+  listWrap.style.cssText = 'overflow-y:auto;display:flex;flex-direction:column;gap:10px;flex:1'
+
+  function setActiveTab(tab) {
+    if(tab === 'inf') {
+      tabInf.style.background = 'var(--violet)'
+      tabInf.style.color      = '#fff'
+      tabLib.style.background = 'transparent'
+      tabLib.style.color      = '#6b6b80'
+      renderScriptList(listWrap, infScripts, 'Aucun script associé à ' + infNom + '.')
+    } else {
+      tabLib.style.background = 'var(--violet)'
+      tabLib.style.color      = '#fff'
+      tabInf.style.background = 'transparent'
+      tabInf.style.color      = '#6b6b80'
+      renderScriptList(listWrap, libraryScripts, 'Aucun script dans la bibliothèque.')
+    }
+  }
+
+  tabInf.onclick = function() { setActiveTab('inf') }
+  tabLib.onclick = function() { setActiveTab('lib') }
+
+  tabsWrap.appendChild(tabInf)
+  tabsWrap.appendChild(tabLib)
+
+  box.appendChild(closeBtn)
+  box.appendChild(titleEl)
+  box.appendChild(subEl)
 
   if(allScripts.length === 0) {
     var emptyGlobal = document.createElement('div')
     emptyGlobal.style.cssText = 'text-align:center;padding:40px 20px'
     emptyGlobal.innerHTML = '<div style="font-size:36px;margin-bottom:12px;opacity:.4">📝</div><div style="font-size:14px;color:#6b6b80">Aucun script dans ta bibliothèque.<br>Crée-en un depuis l\'onglet Scripts.</div>'
-    listWrap.appendChild(emptyGlobal)
+    box.appendChild(emptyGlobal)
   } else if(selectedInfId) {
-    var infScripts     = allScripts.filter(function(s) { return s.influenceur_id === selectedInfId })
-    var libraryScripts = allScripts.filter(function(s) { return s.influenceur_id !== selectedInfId })
-    var infNom         = generationData.influenceur_nom || 'cet influenceur'
-
-    listWrap.appendChild(buildSection('Scripts de ' + infNom, '🤖', infScripts))
-    listWrap.appendChild(buildSection('Bibliothèque complète', '📚', libraryScripts))
+    box.appendChild(tabsWrap)
+    box.appendChild(listWrap)
+    setActiveTab('inf')
   } else {
-    listWrap.appendChild(buildSection('Bibliothèque complète', '📚', allScripts))
+    // Pas d'influenceur sélectionné → uniquement la bibliothèque, pas d'onglets
+    box.appendChild(listWrap)
+    renderScriptList(listWrap, libraryScripts, 'Aucun script dans la bibliothèque.')
   }
 
-  box.appendChild(closeBtn)
-  box.appendChild(titleEl)
-  box.appendChild(subEl)
-  box.appendChild(listWrap)
   overlay.appendChild(box)
   document.body.appendChild(overlay)
   overlay.addEventListener('click', function(e) { if(e.target === overlay) overlay.remove() })
