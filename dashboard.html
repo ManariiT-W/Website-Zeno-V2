@@ -1209,17 +1209,17 @@ function openInfluenceurEdit(infId) {
   var nicheIsKnown = NICHE_OPTIONS_LIST.some(function(o) { return o.value === inf.niche })
   var styleIsKnown = STYLE_OPTIONS_LIST.some(function(o) { return o.value === inf.style })
 
-  var nicheOptionsHtml = '<option value="" disabled>Choisis une niche...</option>' +
+  var nicheOptionsHtml = '<option value="" disabled style="background:#0d0d1f;color:#fff">Choisis une niche...</option>' +
     NICHE_OPTIONS_LIST.map(function(o) {
-      return '<option value="' + o.value + '"' + (inf.niche === o.value ? ' selected' : '') + '>' + o.label + '</option>'
+      return '<option value="' + o.value + '" style="background:#0d0d1f;color:#fff"' + (inf.niche === o.value ? ' selected' : '') + '>' + o.label + '</option>'
     }).join('') +
-    '<option value="custom"' + (!nicheIsKnown ? ' selected' : '') + '>✏️ Écrire ma propre niche...</option>'
+    '<option value="custom" style="background:#0d0d1f;color:#fff"' + (!nicheIsKnown ? ' selected' : '') + '>✏️ Écrire ma propre niche...</option>'
 
-  var styleOptionsHtml = '<option value="" disabled>Choisis un style...</option>' +
+  var styleOptionsHtml = '<option value="" disabled style="background:#0d0d1f;color:#fff">Choisis un style...</option>' +
     STYLE_OPTIONS_LIST.map(function(o) {
-      return '<option value="' + o.value + '"' + (inf.style === o.value ? ' selected' : '') + '>' + o.label + '</option>'
+      return '<option value="' + o.value + '" style="background:#0d0d1f;color:#fff"' + (inf.style === o.value ? ' selected' : '') + '>' + o.label + '</option>'
     }).join('') +
-    '<option value="custom"' + (!styleIsKnown ? ' selected' : '') + '>✏️ Écrire mon propre style...</option>'
+    '<option value="custom" style="background:#0d0d1f;color:#fff"' + (!styleIsKnown ? ' selected' : '') + '>✏️ Écrire mon propre style...</option>'
 
   var overlay = document.createElement('div')
   overlay.id = 'editInfPopup'
