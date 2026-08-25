@@ -747,7 +747,7 @@ async function openScriptSelector() {
     return
   }
 
-  // Charger les scripts
+    // Charger les scripts
   const { data: scripts } = await zenoDb
     .from('scripts')
     .select('*')
@@ -770,44 +770,78 @@ async function openScriptSelector() {
   titleEl.textContent = 'Choisir un script'
 
   var subEl = document.createElement('p')
-  subEl.style.cssText = 'font-size:12.5px;color:#6b6b80;margin-bottom:20px'
+  subEl.style.cssText = 'font-size:12.5px;color:#6b6b80;margin-bottom:16px'
   subEl.textContent = 'Sélectionne un script pour l\'insérer dans la description.'
 
   var listWrap = document.createElement('div')
-  listWrap.style.cssText = 'overflow-y:auto;display:flex;flex-direction:column;gap:10px;flex:1'
+  listWrap.style.cssText = 'overflow-y:auto;display:flex;flex-direction:column;gap:20px;flex:1'
 
-  if(!scripts || scripts.length === 0) {
-    var emptyEl = document.createElement('div')
-    emptyEl.style.cssText = 'text-align:center;padding:40px 20px'
-    emptyEl.innerHTML = '<div style="font-size:36px;margin-bottom:12px;opacity:.4">📝</div><div style="font-size:14px;color:#6b6b80">Aucun script dans ta bibliothèque.<br>Crée-en un depuis l\'onglet Scripts.</div>'
-    listWrap.appendChild(emptyEl)
-  } else {
-    scripts.forEach(function(s) {
-      var card = document.createElement('div')
-      card.style.cssText = 'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .2s'
-      card.onmouseover = function() { this.style.borderColor='rgba(123,97,255,.4)'; this.style.background='rgba(123,97,255,.06)' }
-      card.onmouseout  = function() { this.style.borderColor='rgba(255,255,255,.07)'; this.style.background='rgba(255,255,255,.03)' }
+  var allScripts = scripts || []
+  var selectedInfId = generationData.influenceur_id
 
-      var cardTitle = document.createElement('div')
-      cardTitle.style.cssText = 'font-size:13px;font-weight:700;color:#fff;margin-bottom:6px'
-      cardTitle.textContent = s.titre
+  function buildScriptCard(s) {
+    var card = document.createElement('div')
+    card.style.cssText = 'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .2s'
+    card.onmouseover = function() { this.style.borderColor='rgba(123,97,255,.4)'; this.style.background='rgba(123,97,255,.06)' }
+    card.onmouseout  = function() { this.style.borderColor='rgba(255,255,255,.07)'; this.style.background='rgba(255,255,255,.03)' }
 
-      var cardPreview = document.createElement('div')
-      cardPreview.style.cssText = 'font-size:12px;color:#6b6b80;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden'
-      cardPreview.textContent = s.contenu
+    var cardTitle = document.createElement('div')
+    cardTitle.style.cssText = 'font-size:13px;font-weight:700;color:#fff;margin-bottom:6px'
+    cardTitle.textContent = s.titre
 
-      card.appendChild(cardTitle)
-      card.appendChild(cardPreview)
-      card.onclick = function() {
-        var textarea = document.getElementById('genDescription')
-        if(textarea) {
-          textarea.value = s.contenu
-          updateDescription(s.contenu)
-        }
-        overlay.remove()
+    var cardPreview = document.createElement('div')
+    cardPreview.style.cssText = 'font-size:12px;color:#6b6b80;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden'
+    cardPreview.textContent = s.contenu
+
+    card.appendChild(cardTitle)
+    card.appendChild(cardPreview)
+    card.onclick = function() {
+      var textarea = document.getElementById('genDescription')
+      if(textarea) {
+        textarea.value = s.contenu
+        updateDescription(s.contenu)
       }
-      listWrap.appendChild(card)
-    })
+      overlay.remove()
+    }
+    return card
+  }
+
+  function buildSection(sectionTitle, sectionIcon, list) {
+    var section = document.createElement('div')
+
+    var head = document.createElement('div')
+    head.style.cssText = 'font-size:11px;font-weight:700;color:#6b6b80;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px'
+    head.textContent = sectionIcon + ' ' + sectionTitle
+    section.appendChild(head)
+
+    if(list.length === 0) {
+      var emptyEl = document.createElement('div')
+      emptyEl.style.cssText = 'text-align:center;padding:20px;color:#6b6b80;font-size:12.5px;background:rgba(255,255,255,.02);border-radius:12px'
+      emptyEl.textContent = 'Aucun script ici pour le moment.'
+      section.appendChild(emptyEl)
+    } else {
+      var cardsWrap = document.createElement('div')
+      cardsWrap.style.cssText = 'display:flex;flex-direction:column;gap:10px'
+      list.forEach(function(s) { cardsWrap.appendChild(buildScriptCard(s)) })
+      section.appendChild(cardsWrap)
+    }
+    return section
+  }
+
+  if(allScripts.length === 0) {
+    var emptyGlobal = document.createElement('div')
+    emptyGlobal.style.cssText = 'text-align:center;padding:40px 20px'
+    emptyGlobal.innerHTML = '<div style="font-size:36px;margin-bottom:12px;opacity:.4">📝</div><div style="font-size:14px;color:#6b6b80">Aucun script dans ta bibliothèque.<br>Crée-en un depuis l\'onglet Scripts.</div>'
+    listWrap.appendChild(emptyGlobal)
+  } else if(selectedInfId) {
+    var infScripts     = allScripts.filter(function(s) { return s.influenceur_id === selectedInfId })
+    var libraryScripts = allScripts.filter(function(s) { return s.influenceur_id !== selectedInfId })
+    var infNom         = generationData.influenceur_nom || 'cet influenceur'
+
+    listWrap.appendChild(buildSection('Scripts de ' + infNom, '🤖', infScripts))
+    listWrap.appendChild(buildSection('Bibliothèque complète', '📚', libraryScripts))
+  } else {
+    listWrap.appendChild(buildSection('Bibliothèque complète', '📚', allScripts))
   }
 
   box.appendChild(closeBtn)
